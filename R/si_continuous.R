@@ -8,9 +8,12 @@
 #'
 #' @importFrom checkmate qassert assert_number
 #' @importFrom deSolve ode
+#' @import stringr
+#' @import dplyr
 #'
-#' @example si_continuous(N=10, type="density") |> autoplot()
-#' @example si_continuous(N=10, type="frequency") |> autoplot()
+#' @examples
+#' si_continuous(N=10, type="density") |> ggplot2::autoplot()
+#' si_continuous(N=10, type="frequency") |> ggplot2::autoplot()
 #'
 #' @export
 si_continuous <- function(N=10, beta=0.05, type=c("frequency","density"), init_I=1, time_points=seq(0,21,by=0.1)){
@@ -45,11 +48,12 @@ si_continuous <- function(N=10, beta=0.05, type=c("frequency","density"), init_I
   ) |>
     as.data.frame() |>
     as_tibble() |>
-    mutate(S = pmax(S, 0), I = N-S) |>
-    select(Time=time, everything()) ->
+    mutate(S = pmax(.data$S, 0), I = N-.data$S) |>
+    select(Time=.data$time, everything()) ->
     output
 
   class(output) <- c("ipdmr_dt", class(output))
+  attr(output, "plot_caption") <- str_c("continuous; ", type)
   return(output)
 }
 

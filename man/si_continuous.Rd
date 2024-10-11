@@ -18,3 +18,8 @@ si_continuous(
 \description{
 Title
 }
+\examples{
+si_continuous(N=10, type="density") |> ggplot2::autoplot()
+si_continuous(N=10, type="frequency") |> ggplot2::autoplot()
+
+}

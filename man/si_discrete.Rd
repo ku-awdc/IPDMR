@@ -14,8 +14,13 @@ si_discrete(
 )
 }
 \arguments{
-\item{time_points}{}
+\item{init_I}{}
 }
 \description{
 Title
+}
+\examples{
+si_discrete(N=10, type="density") |> ggplot2::autoplot()
+si_discrete(N=10, type="frequency") |> ggplot2::autoplot()
+
 }

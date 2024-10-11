@@ -3,13 +3,15 @@
 #' @param N
 #' @param beta
 #' @param type
+#' @param time_step
+#' @param max_time
 #' @param init_I
-#' @param time_points
 #'
 #' @importFrom checkmate qassert assert_number
 #'
-#' @example si_discrete(N=10, type="density") |> autoplot()
-#' @example si_discrete(N=10, type="frequency") |> autoplot()
+#' @examples
+#' si_discrete(N=10, type="density") |> ggplot2::autoplot()
+#' si_discrete(N=10, type="frequency") |> ggplot2::autoplot()
 #'
 #' @export
 si_discrete <- function(N=10, beta=0.05, type=c("frequency","density"), init_I=1, time_step=1/24, max_time=21){
@@ -50,11 +52,12 @@ si_discrete <- function(N=10, beta=0.05, type=c("frequency","density"), init_I=1
 
   output |>
     as_tibble() |>
-    select(Time, everything()) |>
-    filter(Time <= max_time) ->
+    select(.data$Time, everything()) |>
+    filter(.data$Time <= max_time) ->
     output
 
   class(output) <- c("ipdmr_dt", class(output))
+  attr(output, "plot_caption") <- str_c("discrete; ", type, "; time_step=", round(time_step,3))
   return(output)
 }
 
