@@ -110,6 +110,24 @@ WithinGroupModel <- R6::R6Class(
       private$.reset_N()
     },
 
+    beta = function(value){
+      if(missing(value)) return(private$.beta)
+      stopifnot(value >= 0.0)
+      private$.beta <- value
+    },
+
+    gamma = function(value){
+      if(missing(value)) return(private$.gamma)
+      stopifnot(value >= 0.0)
+      private$.gamma <- value
+    },
+
+    delta = function(value){
+      if(missing(value)) return(private$.delta)
+      stopifnot(value >= 0.0)
+      private$.delta <- value
+    },
+
     time_step = function(value){
       if(missing(value)) return(private$.time_step)
       private$.time_step <- value
@@ -193,7 +211,7 @@ wgm_run <- function(super, self, private, n_steps, time_step, include_current){
   out
 }
 
-# model <- WithinGroupModel$new(update_type="stochastic"); model$run(100) |> autoplot()
+# model <- WithinGroupModel$new(update_type="stochastic"); model$beta <- 0.5; model$run(100) |> autoplot()
 #
 # c(
 #   list(model$state),
