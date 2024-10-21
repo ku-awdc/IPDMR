@@ -1,7 +1,6 @@
 `$` <- function(lhs,rhs){
   name <- deparse(substitute(rhs))
   if(is.environment(lhs) && !name %in% names(lhs)) stop(name, " not present in environment")
-  if(is.list(lhs) && !name %in% names(lhs)) stop(name, " not present in list")
   do.call(base::`$`, args=list(lhs, name))
 }
 mlist <- function(..., .dummy=NULL){
@@ -29,6 +28,7 @@ mlist <- function(..., .dummy=NULL){
 #' General within-group model class
 #'
 #' @importFrom tibble tibble
+#' @importFrom dplyr bind_rows
 #' @export
 WithinGroupModel <- R6::R6Class(
 
@@ -37,7 +37,7 @@ WithinGroupModel <- R6::R6Class(
   public = mlist(
 
     initialize = function(
-      model_type = c("sir"),
+      model_type = c("sirs"),
       update_type = c("deterministic","stochastic"),
       transmission_type = c("frequency","density"),
       time_step = 1L
@@ -59,20 +59,27 @@ WithinGroupModel <- R6::R6Class(
 
     },
 
+    run = function(n_steps, time_step=self$time_step, include_current=self$time==0){
+      wgm_run(super, self, private, n_steps, time_step, include_current)
+    },
+
     .dummy=NULL
   ),
 
   private = mlist(
     .model_type = character(),
+    .update_type = character(),
+    .transmission_type = character(),
+    .time_step = 1,
+
     .S = 99,
     .I = 1,
     .R = 0,
     .N = 100,
-    .timestep = 1,
     .time = 0,
     .beta = 0.25,
-    .gamma = 0.25,
-    .delta = 0.25,
+    .gamma = 0.2,
+    .delta = 0.05,
 
     .reset_N = function(){
       private$.N <- private$.S + private$.I + private$.R
@@ -84,25 +91,28 @@ WithinGroupModel <- R6::R6Class(
   active = list(
     S = function(value){
       if(missing(value)) return(private$.S)
+      if(private$.update_type=="stochastic") stopifnot(value%%1==0)
       private$.S <- value
       private$.reset_N()
     },
 
     I = function(value){
       if(missing(value)) return(private$.I)
+      if(private$.update_type=="stochastic") stopifnot(value%%1==0)
       private$.I <- value
       private$.reset_N()
     },
 
     R = function(value){
       if(missing(value)) return(private$.R)
+      if(private$.update_type=="stochastic") stopifnot(value%%1==0)
       private$.R <- value
       private$.reset_N()
     },
 
     time_step = function(value){
-      if(missing(value)) return(private$.timestep)
-      private$.timestep <- value
+      if(missing(value)) return(private$.time_step)
+      private$.time_step <- value
     },
 
     time = function() private$.time,
@@ -120,19 +130,16 @@ WithinGroupModel <- R6::R6Class(
 
 wgm_initialise <- function(super, self, private, model_type="hi", update_type, transmission_type, time_step){
 
-  ## TODO:
-  stopifnot(model_type=="sir")
-  stopifnot(update_type=="deterministic")
-  stopifnot(transmission_type=="frequency")
-
   private$.model_type <- model_type
+  private$.update_type <- update_type
+  private$.transmission_type <- transmission_type
   private$.reset_N()
   self$time_step <- time_step
 
 }
 
 wgm_update_models <- list(
-  sir = function(super, self, private, time_step){
+  sirs = function(super, self, private, time_step){
 
     self$check_state()
 
@@ -140,13 +147,25 @@ wgm_update_models <- list(
     I <- private$.I
     R <- private$.R
 
-    ## TODO:
-    N <- private$.N
-    infctn <- I/N * time_step
+    infctn <- if(private$.transmission_type=="frequency"){
+      I/private$.N * self$time_step
+    }else{
+      I * self$time_step
+    }
 
-    new_I <- S * (1 - exp(-private$.beta * infctn))
-    new_R <- I * (1 - exp(-private$.gamma))
-    new_S <- R * (1 - exp(-private$.delta))
+    cfun <- if(private$.update_type=="stochastic"){
+      function(size, prob){
+        rbinom(1, size, prob)
+      }
+    }else{
+      function(size, prob){
+        size*prob
+      }
+    }
+
+    new_I <- cfun(S, (1 - exp(-private$.beta * infctn)))
+    new_R <- cfun(I, (1 - exp(-private$.gamma)))
+    new_S <- cfun(R, (1 - exp(-private$.delta)))
 
     private$.S <- S + new_S - new_I
     private$.I <- I + new_I - new_R
@@ -159,7 +178,22 @@ wgm_update_models <- list(
   }
 )
 
-# model <- WithinGroupModel$new()
+wgm_run <- function(super, self, private, n_steps, time_step, include_current){
+  c(
+    if(include_current) list(self$state),
+    lapply(seq_len(n_steps), \(x){
+      model$update(time_step)
+      model$state
+    })
+  ) |>
+    bind_rows() ->
+    out
+  cn <- if(private$.update_type=="deterministic") "ipdmr_dt" else "ipdmr_st"
+  class(out) <- c(cn, class(out))
+  out
+}
+
+# model <- WithinGroupModel$new(update_type="stochastic"); model$run(100) |> autoplot()
 #
 # c(
 #   list(model$state),

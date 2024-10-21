@@ -12,6 +12,7 @@ General within-group model class
 \item \href{#method-WithinGroupModel-new}{\code{WithinGroupModel$new()}}
 \item \href{#method-WithinGroupModel-update}{\code{WithinGroupModel$update()}}
 \item \href{#method-WithinGroupModel-check_state}{\code{WithinGroupModel$check_state()}}
+\item \href{#method-WithinGroupModel-run}{\code{WithinGroupModel$run()}}
 \item \href{#method-WithinGroupModel-clone}{\code{WithinGroupModel$clone()}}
 }
 }
@@ -44,6 +45,19 @@ General within-group model class
 \subsection{Method \code{check_state()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{WithinGroupModel$check_state()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-WithinGroupModel-run"></a>}}
+\if{latex}{\out{\hypertarget{method-WithinGroupModel-run}{}}}
+\subsection{Method \code{run()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{WithinGroupModel$run(
+  n_steps,
+  time_step = self$time_step,
+  include_current = self$time == 0
+)}\if{html}{\out{</div>}}
 }
 
 }
