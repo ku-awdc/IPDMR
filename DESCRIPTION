@@ -22,7 +22,8 @@ Imports:
   ggplot2,
   tidyr,
   stringr,
-  R6
+  R6,
+  pbapply
 Suggests: 
   knitr,
   rmarkdown,

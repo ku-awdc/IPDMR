@@ -28,8 +28,7 @@ autoplot.ipdmr_st <- function(object, ...){
   object |>
     pivot_longer(cols=-"Time", names_to="Compartment", values_to="Number") |>
     ggplot(aes(x=.data$Time, y=.data$Number, col=.data$Compartment)) +
-    geom_line() +
-    geom_point() +
+    geom_step() +
     theme_light() +
     theme(legend.position="bottom", legend.title = element_blank()) +
     ylim(c(0,object |> slice(1L) |> select(-"Time") |> sum())) +

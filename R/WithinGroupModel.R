@@ -200,8 +200,8 @@ wgm_run <- function(super, self, private, n_steps, time_step, include_current){
   c(
     if(include_current) list(self$state),
     lapply(seq_len(n_steps), \(x){
-      model$update(time_step)
-      model$state
+      self$update(time_step)
+      self$state
     })
   ) |>
     bind_rows() ->
