@@ -21,7 +21,8 @@ Imports:
   checkmate,
   ggplot2,
   tidyr,
-  stringr
+  stringr,
+  R6
 Suggests: 
   knitr,
   rmarkdown,
