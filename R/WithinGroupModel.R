@@ -206,8 +206,25 @@ wgm_run <- function(super, self, private, n_steps, time_step, include_current){
   ) |>
     bind_rows() ->
     out
-  cn <- if(private$.update_type=="deterministic") "ipdmr_dt" else "ipdmr_st"
-  class(out) <- c(cn, class(out))
+
+  if(private$.update_type=="deterministic"){
+
+    class(out) <- c("ipdmr_dt", class(out))
+    attr(out, "plot_caption") <- str_c("deterministic; discrete; ", private$.transmission_type)
+
+  }else{
+
+    out |>
+      mutate(Iteration = 1L) |>
+      select(Iteration, everything()) ->
+      out
+
+    class(out) <- c("ipdmr_st", class(out))
+    attr(out,'iterations') <- 1L
+    attr(out, "plot_caption") <- str_c("stochastic; discrete; ", private$.transmission_type)
+
+  }
+
   out
 }
 

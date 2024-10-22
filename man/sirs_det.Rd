@@ -8,9 +8,9 @@ sirs_det(
   S = 99,
   I = 1,
   R = 0,
-  beta = 0.2,
+  beta = 0.25,
   gamma = 0.2,
-  delta = 0.2,
+  delta = 0.05,
   transmission_type = "frequency",
   time_step = 1L,
   max_time = 100L
