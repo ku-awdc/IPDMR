@@ -26,7 +26,6 @@ si_discrete <- function(N=10, beta=0.05, type=c("frequency","density"), init_I=1
   assert_number(max_time, lower=time_step)
 
   ntime <- ceiling(max_time/time_step)+1L
-  beta <- beta*time_step
   type <- match.arg(type)
 
   i_dens <- function(i) 1 - exp(-beta * i)
@@ -42,7 +41,7 @@ si_discrete <- function(N=10, beta=0.05, type=c("frequency","density"), init_I=1
   output[1L,"I"] <- I
   for(row in seq_len(ntime)){
     time <- time + time_step
-    newI <- S*i_fun(I)
+    newI <- S*i_fun(I) * self$time_step
     S <- S - newI
     I <- I + newI
     output[row+1L,"Time"] <- time

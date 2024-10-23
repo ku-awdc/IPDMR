@@ -166,9 +166,9 @@ wgm_update_models <- list(
     R <- private$.R
 
     infctn <- if(private$.transmission_type=="frequency"){
-      I/private$.N * self$time_step
+      I/private$.N
     }else{
-      I * self$time_step
+      I
     }
 
     cfun <- if(private$.update_type=="stochastic"){
@@ -181,9 +181,9 @@ wgm_update_models <- list(
       }
     }
 
-    new_I <- cfun(S, (1 - exp(-private$.beta * infctn)))
-    new_R <- cfun(I, (1 - exp(-private$.gamma)))
-    new_S <- cfun(R, (1 - exp(-private$.delta)))
+    new_I <- cfun(S, (1 - exp(-private$.beta * infctn * self$time_step)))
+    new_R <- cfun(I, (1 - exp(-private$.gamma * self$time_step)))
+    new_S <- cfun(R, (1 - exp(-private$.delta * self$time_step)))
 
     private$.S <- S + new_S - new_I
     private$.I <- I + new_I - new_R
