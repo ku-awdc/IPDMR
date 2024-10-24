@@ -22,10 +22,10 @@ General within-group model class
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{WithinGroupModel$new(
-  model_type = c("sirs"),
+  model_type = c("sir"),
   update_type = c("deterministic", "stochastic"),
   transmission_type = c("frequency", "density"),
-  time_step = 1L
+  d_time = 1L
 )}\if{html}{\out{</div>}}
 }
 
@@ -35,7 +35,7 @@ General within-group model class
 \if{latex}{\out{\hypertarget{method-WithinGroupModel-update}{}}}
 \subsection{Method \code{update()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{WithinGroupModel$update(time_step = self$time_step)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{WithinGroupModel$update(d_time = self$d_time)}\if{html}{\out{</div>}}
 }
 
 }
@@ -55,7 +55,7 @@ General within-group model class
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{WithinGroupModel$run(
   n_steps,
-  time_step = self$time_step,
+  d_time = self$d_time,
   include_current = self$time == 0
 )}\if{html}{\out{</div>}}
 }

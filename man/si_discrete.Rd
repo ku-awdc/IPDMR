@@ -5,16 +5,16 @@
 \title{Title}
 \usage{
 si_discrete(
-  N = 10,
+  S = 9,
+  I = 1,
   beta = 0.05,
   type = c("frequency", "density"),
-  init_I = 1,
-  time_step = 1/24,
+  d_time = 1/24,
   max_time = 21
 )
 }
 \arguments{
-\item{init_I}{}
+\item{max_time}{}
 }
 \description{
 Title

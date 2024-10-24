@@ -16,13 +16,13 @@
 #' si_continuous(N=10, type="frequency") |> ggplot2::autoplot()
 #'
 #' @export
-si_continuous <- function(N=10, beta=0.05, type=c("frequency","density"), init_I=1, time_points=seq(0,21,by=0.1)){
+si_continuous <- function(S=9, I=1, beta=0.05, type=c("frequency","density"), time_points=seq(0,21,by=0.1)){
 
-  qassert(N, "N1(0,)")
+  qassert(S, "N1[0,)")
+  qassert(I, "N1[0,)")
+  qassert(S+I, "N1(0,)")
+  N <- S+I
   qassert(beta, "N1(0,)")
-  qassert(init_I, "N1(0,)")
-  assert_number(init_I, upper=N)
-  qassert(N, "N1(0,)")
   qassert(time_points, "N+[0,)")
 
   type <- match.arg(type)
@@ -41,7 +41,7 @@ si_continuous <- function(N=10, beta=0.05, type=c("frequency","density"), init_I
   parameters <- list(N=N, beta=beta)
 
   ode(
-    y = c("S"=N-init_I, "I"=init_I),
+    y = c("S"=S, "I"=I),
     times = time_points,
     func = if(type=="density") model_dens else model_freq,
     parms = parameters

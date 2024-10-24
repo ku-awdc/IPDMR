@@ -5,10 +5,10 @@
 \title{Title}
 \usage{
 si_continuous(
-  N = 10,
+  S = 9,
+  I = 1,
   beta = 0.05,
   type = c("frequency", "density"),
-  init_I = 1,
   time_points = seq(0, 21, by = 0.1)
 )
 }

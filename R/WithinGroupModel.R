@@ -37,21 +37,21 @@ WithinGroupModel <- R6::R6Class(
   public = mlist(
 
     initialize = function(
-      model_type = c("sirs"),
+      model_type = c("sir"),
       update_type = c("deterministic","stochastic"),
       transmission_type = c("frequency","density"),
-      time_step = 1L
+      d_time = 1L
     ){
       model_type <- match.arg(model_type)
       update_type <- match.arg(update_type)
       transmission_type <- match.arg(transmission_type)
-      wgm_initialise(super, self, private, model_type, update_type, transmission_type, time_step)
+      wgm_initialise(super, self, private, model_type, update_type, transmission_type, d_time)
     },
 
     update = function(
-      time_step = self$time_step
+    d_time = self$d_time
     ){
-      wgm_update_models[[private$.model_type]](super, self, private, time_step)
+      wgm_update_models[[private$.model_type]](super, self, private, d_time)
       invisible(self)
     },
 
@@ -59,8 +59,8 @@ WithinGroupModel <- R6::R6Class(
 
     },
 
-    run = function(n_steps, time_step=self$time_step, include_current=self$time==0){
-      wgm_run(super, self, private, n_steps, time_step, include_current)
+    run = function(n_steps, d_time=self$d_time, include_current=self$time==0){
+      wgm_run(super, self, private, n_steps, d_time, include_current)
     },
 
     .dummy=NULL
@@ -70,7 +70,7 @@ WithinGroupModel <- R6::R6Class(
     .model_type = character(),
     .update_type = character(),
     .transmission_type = character(),
-    .time_step = 1,
+    .d_time = 1,
 
     .S = 99,
     .I = 1,
@@ -128,9 +128,9 @@ WithinGroupModel <- R6::R6Class(
       private$.delta <- value
     },
 
-    time_step = function(value){
-      if(missing(value)) return(private$.time_step)
-      private$.time_step <- value
+    d_time = function(value){
+      if(missing(value)) return(private$.d_time)
+      private$.d_time <- value
     },
 
     time = function() private$.time,
@@ -146,18 +146,18 @@ WithinGroupModel <- R6::R6Class(
 
 )
 
-wgm_initialise <- function(super, self, private, model_type="hi", update_type, transmission_type, time_step){
+wgm_initialise <- function(super, self, private, model_type="hi", update_type, transmission_type, d_time){
 
   private$.model_type <- model_type
   private$.update_type <- update_type
   private$.transmission_type <- transmission_type
   private$.reset_N()
-  self$time_step <- time_step
+  self$d_time <- d_time
 
 }
 
 wgm_update_models <- list(
-  sirs = function(super, self, private, time_step){
+  sir = function(super, self, private, d_time){
 
     self$check_state()
 
@@ -181,26 +181,26 @@ wgm_update_models <- list(
       }
     }
 
-    new_I <- cfun(S, (1 - exp(-private$.beta * infctn * self$time_step)))
-    new_R <- cfun(I, (1 - exp(-private$.gamma * self$time_step)))
-    new_S <- cfun(R, (1 - exp(-private$.delta * self$time_step)))
+    new_I <- cfun(S, (1 - exp(-private$.beta * infctn * self$d_time)))
+    new_R <- cfun(I, (1 - exp(-private$.gamma * self$d_time)))
+    new_S <- cfun(R, (1 - exp(-private$.delta * self$d_time)))
 
     private$.S <- S + new_S - new_I
     private$.I <- I + new_I - new_R
     private$.R <- R + new_R - new_S
 
-    private$.time <- private$.time + time_step
+    private$.time <- private$.time + d_time
 
     self$check_state()
 
   }
 )
 
-wgm_run <- function(super, self, private, n_steps, time_step, include_current){
+wgm_run <- function(super, self, private, n_steps, d_time, include_current){
   c(
     if(include_current) list(self$state),
     lapply(seq_len(n_steps), \(x){
-      self$update(time_step)
+      self$update(d_time)
       self$state
     })
   ) |>
