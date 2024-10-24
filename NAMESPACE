@@ -3,6 +3,7 @@
 S3method(autoplot,ipdmr_dt)
 S3method(autoplot,ipdmr_st)
 S3method(print,ExampleClass)
+export(BetweenGroupModel)
 export(WithinGroupModel)
 export(example_function)
 export(si_continuous)

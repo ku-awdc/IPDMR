@@ -1,21 +1,4 @@
-`$` <- function(lhs,rhs){
-  name <- deparse(substitute(rhs))
-  if(is.environment(lhs) && !name %in% names(lhs)) stop(name, " not present in environment")
-  do.call(base::`$`, args=list(lhs, name))
-}
-mlist <- function(..., .dummy=NULL){
-  args <- list(...)
-  if(any(names(args)=="")){
-    an <- names(args)
-    an[names(args)==""] <- "MISSING"
-    stop("Empty names in member/method list: ", paste0(an,collapse=", "))
-  }
-  if(any(table(names(args))>1)){
-    tn <- table(names(args))
-    stop("Duplicated names in member/method list: ", paste0(names(tn)[tn>1], collapse=", "))
-  }
-  do.call(list, args)
-}
+if(length(find("mlists"))==0L) source("R/R6utils.R")
 
 ## TODO: call_method(mthd_name) function that takes a function mthd_name, extracts the args() as a string, gets rid of super, self, private, then adds a body to call substitute(mthd_name) with the args() intact (but no defaults i.e. remove anything after =)
 ## so we would have e.g. initialize = call_method(wgm_initialize)
@@ -62,6 +45,9 @@ WithinGroupModel <- R6::R6Class(
     run = function(n_steps, d_time=self$d_time, include_current=self$time==0){
       wgm_run(super, self, private, n_steps, d_time, include_current)
     },
+
+    trans_external = 0.0,
+    id = 0,
 
     .dummy=NULL
   ),
@@ -136,7 +122,11 @@ WithinGroupModel <- R6::R6Class(
     time = function() private$.time,
 
     state = function(){
-      tibble(Time = self$time, S = self$S, I = self$I, R = self$R)
+      if(self$id==0){
+        tibble(Time = self$time, S = self$S, I = self$I, R = self$R)
+      }else{
+        tibble(Model = self$id, Time = self$time, S = self$S, I = self$I, R = self$R)
+      }
     },
 
     .dummy=function() NULL
@@ -181,7 +171,7 @@ wgm_update_models <- list(
       }
     }
 
-    new_I <- cfun(S, (1 - exp(-private$.beta * infctn * self$d_time)))
+    new_I <- cfun(S, (1 - exp(-private$.beta * infctn * self$d_time - self$trans_external)))
     new_R <- cfun(I, (1 - exp(-private$.gamma * self$d_time)))
     new_S <- cfun(R, (1 - exp(-private$.delta * self$d_time)))
 
