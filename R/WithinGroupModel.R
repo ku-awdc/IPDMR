@@ -4,7 +4,7 @@ if(length(find("mlists"))==0L) source("R/R6utils.R")
 ## so we would have e.g. initialize = call_method(wgm_initialize)
 ## would this break roxygen docs?  I don't think so...
 
-rate_to_p <- function(...){
+rates_to_p <- function(...){
   rates <- unlist(list(...))
   leave <- 1-exp(-sum(rates))
   if(leave==0){
@@ -296,18 +296,16 @@ wgm_update_models <- list(
 
     dt <- self$d_time
 
-    pv <- rate_to_p(private$.beta*infctn*dt + self$trans_external, private$.vacc*dt)
-    if(any(is.na(pv))) browser()
-    leave_S <- cfun(S, pv)
-#    if(sum(E)>=1) browser()
-    leave_E <- cfun(E, rate_to_p(private$.omega*length(E)*dt, private$.repl*dt), boxes=length(E))
-    leave_I <- cfun(I, rate_to_p(private$.gamma*dt, private$.repl*dt, private$.cull*dt))
-    leave_R <- cfun(R, rate_to_p((private$.delta+private$.repl)*dt))
+    leave_S <- cfun(S, rates_to_p(private$.beta*infctn*dt + self$trans_external, private$.vacc*dt))
+
+    leave_E <- cfun(E, rates_to_p(private$.omega*length(E)*dt, private$.repl*dt), boxes=length(E))
+    leave_I <- cfun(I, rates_to_p(private$.gamma*dt, private$.repl*dt, private$.cull*dt))
+    leave_R <- cfun(R, rates_to_p((private$.delta+private$.repl)*dt))
 
     private$.S <- S + sum(leave_E[,2L]) + sum(leave_I[2:3]) + leave_R - sum(leave_S)
     private$.E <- E + c(leave_S[1], leave_E[-length(E),1L]) - apply(leave_E,1,sum)
     private$.I <- I + leave_E[length(E),1L] - sum(leave_I)
-    private$.R <- R + leave_I[1] - leave_R
+    private$.R <- R + leave_I[1] + leave_S[2] - leave_R
 
     private$.time <- private$.time + d_time
 
