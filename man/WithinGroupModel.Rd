@@ -22,7 +22,7 @@ General within-group model class
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{WithinGroupModel$new(
-  model_type = c("sir"),
+  model_type = c("sir", "seir"),
   update_type = c("deterministic", "stochastic"),
   transmission_type = c("frequency", "density"),
   d_time = 1L

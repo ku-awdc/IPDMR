@@ -4,6 +4,16 @@ if(length(find("mlists"))==0L) source("R/R6utils.R")
 ## so we would have e.g. initialize = call_method(wgm_initialize)
 ## would this break roxygen docs?  I don't think so...
 
+rate_to_p <- function(...){
+  rates <- unlist(list(...))
+  leave <- 1-exp(-sum(rates))
+  if(leave==0){
+    rep(leave, length(rates))
+  }else{
+    leave*rates/sum(rates)
+  }
+}
+
 
 #' @title WithinGroupModel
 #'
@@ -20,7 +30,7 @@ WithinGroupModel <- R6::R6Class(
   public = mlist(
 
     initialize = function(
-      model_type = c("sir"),
+      model_type = c("sir", "seir"),
       update_type = c("deterministic","stochastic"),
       transmission_type = c("frequency","density"),
       d_time = 1L
@@ -39,7 +49,20 @@ WithinGroupModel <- R6::R6Class(
     },
 
     check_state = function(){
-
+      sumst <- (private$.S + sum(private$.E) + private$.I + private$.R)
+      if(private$.update_type=="stochastic"){
+        stopifnot(private$.S%%1==0, private$.S>=0, private$.S<=private$.N)
+        stopifnot(private$.E%%1==0, private$.E>=0, private$.E<=private$.N)
+        stopifnot(private$.I%%1==0, private$.I>=0, private$.I<=private$.N)
+        stopifnot(private$.R%%1==0, private$.R>=0, private$.R<=private$.N)
+        stopifnot(private$.N == sumst)
+      }else{
+        stopifnot(private$.S>=0, private$.S<=private$.N)
+        stopifnot(private$.E>=0, private$.E<=private$.N)
+        stopifnot(private$.I>=0, private$.I<=private$.N)
+        stopifnot(private$.R>=0, private$.R<=private$.N)
+        stopifnot(abs(private$.N - sumst) < 1e-6)
+      }
     },
 
     run = function(n_steps, d_time=self$d_time, include_current=self$time==0){
@@ -59,16 +82,21 @@ WithinGroupModel <- R6::R6Class(
     .d_time = 1,
 
     .S = 99,
+    .E = c(0,0,0),
     .I = 1,
     .R = 0,
     .N = 100,
     .time = 0,
     .beta = 0.25,
+    .omega = 0.2,
     .gamma = 0.2,
     .delta = 0.05,
+    .vacc = 0,
+    .repl = 0,
+    .cull = 0,
 
     .reset_N = function(){
-      private$.N <- private$.S + private$.I + private$.R
+      private$.N <- private$.S + sum(private$.E) + private$.I + private$.R
     },
 
     .dummy = NULL
@@ -79,6 +107,13 @@ WithinGroupModel <- R6::R6Class(
       if(missing(value)) return(private$.S)
       if(private$.update_type=="stochastic") stopifnot(value%%1==0)
       private$.S <- value
+      private$.reset_N()
+    },
+
+    E = function(value){
+      if(missing(value)) return(private$.E)
+      if(private$.update_type=="stochastic") stopifnot(value%%1==0)
+      private$.E <- value
       private$.reset_N()
     },
 
@@ -102,6 +137,12 @@ WithinGroupModel <- R6::R6Class(
       private$.beta <- value
     },
 
+    omega = function(value){
+      if(missing(value)) return(private$.omega)
+      stopifnot(value >= 0.0)
+      private$.omega <- value
+    },
+
     gamma = function(value){
       if(missing(value)) return(private$.gamma)
       stopifnot(value >= 0.0)
@@ -114,6 +155,24 @@ WithinGroupModel <- R6::R6Class(
       private$.delta <- value
     },
 
+    vacc = function(value){
+      if(missing(value)) return(private$.vacc)
+      stopifnot(value >= 0.0)
+      private$.vacc <- value
+    },
+
+    repl = function(value){
+      if(missing(value)) return(private$.repl)
+      stopifnot(value >= 0.0)
+      private$.repl <- value
+    },
+
+    cull = function(value){
+      if(missing(value)) return(private$.cull)
+      stopifnot(value >= 0.0)
+      private$.cull <- value
+    },
+
     d_time = function(value){
       if(missing(value)) return(private$.d_time)
       private$.d_time <- value
@@ -122,11 +181,12 @@ WithinGroupModel <- R6::R6Class(
     time = function() private$.time,
 
     state = function(){
-      if(self$id==0){
-        tibble(Time = self$time, S = self$S, I = self$I, R = self$R)
-      }else{
-        tibble(Model = self$id, Time = self$time, S = self$S, I = self$I, R = self$R)
-      }
+      bind_cols(
+        if(self$id!=0) tibble(Model = self$id),
+        tibble(Time = self$time, S = self$S),
+        if(private$.model_type=="seir") tibble(E = sum(self$E)),
+        tibble(I = self$I, R = self$R)
+      )
     },
 
     .dummy=function() NULL
@@ -183,6 +243,75 @@ wgm_update_models <- list(
 
     self$check_state()
 
+  },
+
+  seir = function(super, self, private, d_time){
+
+    self$check_state()
+
+    S <- private$.S
+    E <- private$.E
+    I <- private$.I
+    R <- private$.R
+
+    infctn <- if(private$.transmission_type=="frequency"){
+      I/private$.N
+    }else{
+      I
+    }
+
+    cfun <- if(private$.update_type=="stochastic"){
+      function(size, prob, boxes=NULL){
+        np <- length(prob)
+        if(is.null(boxes)){
+          stopifnot(length(size)==1L)
+          prob <- matrix(c(1-sum(prob), prob), nrow=1L)
+        }else{
+          nb <- length(size)
+          stopifnot(nb==boxes)
+          prob <- matrix(rep(c(1-sum(prob),prob), each=nb), nrow=nb)
+        }
+        out <- t(vapply(seq_along(size), \(x){
+          rmultinom(1, size[x], prob[x,])[-1,,drop=TRUE]
+        }, numeric(np)))
+        if(is.null(boxes)){
+          as.numeric(out)
+        }else{
+          matrix(out,nrow=boxes)
+        }
+      }
+    }else{
+      function(size, prob, boxes=NULL){
+        if(is.null(boxes)){
+          stopifnot(length(size)==1L)
+        }else{
+          nb <- length(size)
+          stopifnot(nb==boxes)
+          size <- matrix(rep(size, times=length(prob)), nrow=nb)
+          prob <- matrix(rep(prob, each=nb), nrow=nb)
+        }
+        size*prob
+      }
+    }
+
+    dt <- self$d_time
+
+    pv <- rate_to_p(private$.beta*infctn*dt + self$trans_external, private$.vacc*dt)
+    if(any(is.na(pv))) browser()
+    leave_S <- cfun(S, pv)
+#    if(sum(E)>=1) browser()
+    leave_E <- cfun(E, rate_to_p(private$.omega*length(E)*dt, private$.repl*dt), boxes=length(E))
+    leave_I <- cfun(I, rate_to_p(private$.gamma*dt, private$.repl*dt, private$.cull*dt))
+    leave_R <- cfun(R, rate_to_p((private$.delta+private$.repl)*dt))
+
+    private$.S <- S + sum(leave_E[,2L]) + sum(leave_I[2:3]) + leave_R - sum(leave_S)
+    private$.E <- E + c(leave_S[1], leave_E[-length(E),1L]) - apply(leave_E,1,sum)
+    private$.I <- I + leave_E[length(E),1L] - sum(leave_I)
+    private$.R <- R + leave_I[1] - leave_R
+
+    private$.time <- private$.time + d_time
+
+    self$check_state()
   }
 )
 
