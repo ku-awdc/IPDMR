@@ -59,3 +59,48 @@ si_discrete <- function(S=9, I=1, beta=0.05, type=c("frequency","density"), d_ti
 }
 
 
+
+#' @export
+ab_discrete <- function(rate=0.1, d_time=0.1, max_time=10){
+
+  qassert(rate, "N1(0,)")
+  qassert(d_time, "N1[0,)")
+  qassert(max_time, "N1[0,)")
+  assert_number(max_time, lower=d_time)
+
+  ntime <- ceiling(max_time/d_time)+1L
+  A <- 1
+
+  output <- matrix(NA_real_, nrow=(ntime*2)+1L, ncol=2L, dimnames=list(NULL, c("Time","A")))
+  time <- 0
+
+  if(FALSE){
+    A <- A - (A * (1 - exp(-rate*d_time)))
+  }
+
+  output[1,"Time"] <- 0
+  output[1,"A"] <- A
+
+  for(row in seq(2,ntime*2,by=2)){
+    time <- time + d_time
+    output[row,"Time"] <- time-1e-6
+    output[row,"A"] <- A
+
+    newA <- A * (1 - exp(-rate*d_time))
+    A <- A - newA
+    output[row+1,"Time"] <- time
+    output[row+1,"A"] <- A
+  }
+
+  output |>
+    as_tibble() |>
+    select(.data$Time, everything()) |>
+    filter(.data$Time <= max_time) ->
+    output
+
+  class(output) <- c("ipdmr_dt", class(output))
+  attr(output, "plot_caption") <- str_c("discrete; d_time=", round(d_time,3))
+  return(output)
+}
+
+

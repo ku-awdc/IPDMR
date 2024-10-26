@@ -14,6 +14,21 @@ rates_to_p <- function(...){
   }
 }
 
+if(FALSE){
+  rate_adj <- function(rate, d_time, sub_comp=1L){
+    # sub_comp / ((1 / (rate*d_time)) - sub_comp)
+    (rate * d_time * sub_comp) / (1 - (rate * d_time * sub_comp))
+  }
+
+  ## Proof the rate_adj function corrects the mean:
+  rate <- runif(1,0,0.1)
+  sc <- sample(1:10, 1)
+  d_time <- runif(1,0,0.5)
+  adjr <- rate_adj(rate, d_time, sc)
+  1/rate; (mean(rnbinom(1e5, sc, mu=sc/adjr))+sc)*d_time
+  ## BUT it affects the variance, so don't use it
+}
+
 
 #' @title WithinGroupModel
 #'
@@ -113,6 +128,9 @@ WithinGroupModel <- R6::R6Class(
     E = function(value){
       if(missing(value)) return(private$.E)
       if(private$.update_type=="stochastic") stopifnot(value%%1==0)
+      if(length(value) >= (1/(private$.omega*private$.d_time))){
+        stop("Invalid combination of omega, d_time and number of E compartments")
+      }
       private$.E <- value
       private$.reset_N()
     },
@@ -298,12 +316,15 @@ wgm_update_models <- list(
 
     leave_S <- cfun(S, rates_to_p(private$.beta*infctn*dt + self$trans_external, private$.vacc*dt))
 
-    leave_E <- cfun(E, rates_to_p(private$.omega*length(E)*dt, private$.repl*dt), boxes=length(E))
+    leave_E <- cfun(E, rates_to_p(private$.omega*dt*length(E), private$.repl*dt), boxes=length(E))
     leave_I <- cfun(I, rates_to_p(private$.gamma*dt, private$.repl*dt, private$.cull*dt))
     leave_R <- cfun(R, rates_to_p((private$.delta+private$.repl)*dt))
 
     private$.S <- S + sum(leave_E[,2L]) + sum(leave_I[2:3]) + leave_R - sum(leave_S)
-    private$.E <- E + c(leave_S[1], leave_E[-length(E),1L]) - apply(leave_E,1,sum)
+    newE <- E + c(leave_S[1], leave_E[-length(E),1L]) - apply(leave_E,1,sum)
+    if(any(newE < 0)) browser()
+    private$.E <- newE
+
     private$.I <- I + leave_E[length(E),1L] - sum(leave_I)
     private$.R <- R + leave_I[1] + leave_S[2] - leave_R
 

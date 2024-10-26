@@ -12,8 +12,8 @@
 #' @import dplyr
 #'
 #' @examples
-#' si_continuous(N=10, type="density") |> ggplot2::autoplot()
-#' si_continuous(N=10, type="frequency") |> ggplot2::autoplot()
+#' si_continuous(S=9, I=1, type="density") |> ggplot2::autoplot()
+#' si_continuous(S=9, I=1, type="frequency") |> ggplot2::autoplot()
 #'
 #' @export
 si_continuous <- function(S=9, I=1, beta=0.05, type=c("frequency","density"), time_points=seq(0,21,by=0.1)){
@@ -52,8 +52,38 @@ si_continuous <- function(S=9, I=1, beta=0.05, type=c("frequency","density"), ti
     select(Time=.data$time, everything()) ->
     output
 
-  class(output) <- c("ipdmr_dt", class(output))
+  class(output) <- c("ipdmr_ct", class(output))
   attr(output, "plot_caption") <- str_c("continuous; ", type)
+  return(output)
+}
+
+
+
+#' @export
+ab_continuous <- function(rate=0.1, time_points=seq(0,10,by=0.1)){
+
+  model_fun <- function(times, y, parameters)
+  {
+    new_B <- parameters[["rate"]]*y["A"]
+    list(c(-new_B, +new_B))
+  }
+
+  parameters <- list(rate=rate)
+
+  ode(
+    y = c("A"=1, "B"=0),
+    times = time_points,
+    func = model_fun,
+    parms = parameters
+  ) |>
+    as.data.frame() |>
+    as_tibble() |>
+    mutate(A = pmax(.data$A, 0)) |>
+    select(Time=.data$time, A=.data$A) ->
+    output
+
+  class(output) <- c("ipdmr_ct", class(output))
+  attr(output, "plot_caption") <- str_c("continuous time")
   return(output)
 }
 

@@ -19,7 +19,7 @@ si_continuous(
 Title
 }
 \examples{
-si_continuous(N=10, type="density") |> ggplot2::autoplot()
-si_continuous(N=10, type="frequency") |> ggplot2::autoplot()
+si_continuous(S=9, I=1, type="density") |> ggplot2::autoplot()
+si_continuous(S=9, I=1, type="frequency") |> ggplot2::autoplot()
 
 }
