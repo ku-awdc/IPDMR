@@ -14,7 +14,7 @@ apply_rates <- function(compartments, rates, d_time, update_type=c("deterministi
   update_type <- match.arg(update_type)
 
   ## Generate proportions and remove overlap:
-  leave <- 1-exp(-sum(rates))
+  leave <- 1-exp(-sum(rates)*d_time)
   if(leave==0){
     prop <- rep(leave, length(rates))
   }else{
