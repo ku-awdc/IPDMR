@@ -48,12 +48,13 @@ WithinGroupModel <- R6::R6Class(
       model_type = c("sir", "seir"),
       update_type = c("deterministic","stochastic"),
       transmission_type = c("frequency","density"),
+      num_E = 3L,
       d_time = 1L
     ){
       model_type <- match.arg(model_type)
       update_type <- match.arg(update_type)
       transmission_type <- match.arg(transmission_type)
-      wgm_initialise(super, self, private, model_type, update_type, transmission_type, d_time)
+      wgm_initialise(super, self, private, model_type, update_type, transmission_type, num_E, d_time)
     },
 
     update = function(
@@ -67,17 +68,18 @@ WithinGroupModel <- R6::R6Class(
       sumst <- (private$.S + sum(private$.E) + private$.I + private$.R)
       if(private$.update_type=="stochastic"){
         stopifnot(private$.S%%1==0, private$.S>=0, private$.S<=private$.N)
-        stopifnot(private$.E%%1==0, private$.E>=0, private$.E<=private$.N)
+        stopifnot(private$.E%%1==0, private$.E>=0, sum(private$.E)<=private$.N)
         stopifnot(private$.I%%1==0, private$.I>=0, private$.I<=private$.N)
         stopifnot(private$.R%%1==0, private$.R>=0, private$.R<=private$.N)
         stopifnot(private$.N == sumst)
       }else{
         stopifnot(private$.S>=0, private$.S<=private$.N)
-        stopifnot(private$.E>=0, private$.E<=private$.N)
+        stopifnot(private$.E>=0, sum(private$.E)<=private$.N)
         stopifnot(private$.I>=0, private$.I<=private$.N)
         stopifnot(private$.R>=0, private$.R<=private$.N)
         stopifnot(abs(private$.N - sumst) < 1e-6)
       }
+      stopifnot(length(private$.E)==private$.numE)
     },
 
     run = function(n_steps, d_time=self$d_time, include_current=self$time==0){
@@ -95,12 +97,14 @@ WithinGroupModel <- R6::R6Class(
     .update_type = character(),
     .transmission_type = character(),
     .d_time = 1,
+    .num_E = 3L,
 
     .S = 99,
     .E = c(0,0,0),
     .I = 1,
     .R = 0,
     .N = 100,
+    .numE = 3L,
     .time = 0,
     .beta = 0.25,
     .omega = 0.2,
@@ -127,11 +131,12 @@ WithinGroupModel <- R6::R6Class(
 
     E = function(value){
       if(missing(value)) return(private$.E)
-      if(private$.update_type=="stochastic") stopifnot(value%%1==0)
-      if(length(value) >= (1/(private$.omega*private$.d_time))){
-        stop("Invalid combination of omega, d_time and number of E compartments")
+      if(private$.update_type=="stochastic"){
+        stopifnot(value%%1==0)
+        private$.E <- rmultinom(1, value, rep(1,private$.numE))[,1]
+      }else{
+        private$.E <- rep(value/private$.numE, private$.numE)
       }
-      private$.E <- value
       private$.reset_N()
     },
 
@@ -214,13 +219,16 @@ WithinGroupModel <- R6::R6Class(
 
 )
 
-wgm_initialise <- function(super, self, private, model_type="hi", update_type, transmission_type, d_time){
+wgm_initialise <- function(super, self, private, model_type="hi", update_type, transmission_type, num_E, d_time){
 
   private$.model_type <- model_type
   private$.update_type <- update_type
   private$.transmission_type <- transmission_type
   private$.reset_N()
+  private$.num_E <- num_E
+  self$E <- 0
   self$d_time <- d_time
+  self$check_state()
 
 }
 

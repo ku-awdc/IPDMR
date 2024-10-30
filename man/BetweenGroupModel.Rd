@@ -9,17 +9,27 @@ General between-group model class
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
+\item \href{#method-BetweenGroupModel-new}{\code{BetweenGroupModel$new()}}
 \item \href{#method-BetweenGroupModel-update}{\code{BetweenGroupModel$update()}}
 \item \href{#method-BetweenGroupModel-run}{\code{BetweenGroupModel$run()}}
 \item \href{#method-BetweenGroupModel-clone}{\code{BetweenGroupModel$clone()}}
 }
 }
 \if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BetweenGroupModel-new"></a>}}
+\if{latex}{\out{\hypertarget{method-BetweenGroupModel-new}{}}}
+\subsection{Method \code{new()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BetweenGroupModel$new(models, d_time = 0.1, clone_models = FALSE)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-BetweenGroupModel-update"></a>}}
 \if{latex}{\out{\hypertarget{method-BetweenGroupModel-update}{}}}
 \subsection{Method \code{update()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BetweenGroupModel$update()}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{BetweenGroupModel$update(d_time = private$.d_time)}\if{html}{\out{</div>}}
 }
 
 }
@@ -28,7 +38,12 @@ General between-group model class
 \if{latex}{\out{\hypertarget{method-BetweenGroupModel-run}{}}}
 \subsection{Method \code{run()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BetweenGroupModel$run(n_steps, d_time = 1)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{BetweenGroupModel$run(
+  n_steps,
+  d_time = private$.d_time,
+  iterations = 1L,
+  include_current = self$time == 0
+)}\if{html}{\out{</div>}}
 }
 
 }
