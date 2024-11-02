@@ -20,7 +20,7 @@ si_discrete(
 Title
 }
 \examples{
-si_discrete(N=10, type="density") |> ggplot2::autoplot()
-si_discrete(N=10, type="frequency") |> ggplot2::autoplot()
+si_discrete(S=9, I=1, type="density") |> ggplot2::autoplot()
+si_discrete(S=9, I=1, type="frequency") |> ggplot2::autoplot()
 
 }

@@ -10,8 +10,8 @@
 #' @importFrom checkmate qassert assert_number
 #'
 #' @examples
-#' si_discrete(N=10, type="density") |> ggplot2::autoplot()
-#' si_discrete(N=10, type="frequency") |> ggplot2::autoplot()
+#' si_discrete(S=9, I=1, type="density") |> ggplot2::autoplot()
+#' si_discrete(S=9, I=1, type="frequency") |> ggplot2::autoplot()
 #'
 #' @export
 si_discrete <- function(S=9, I=1, beta=0.05, type=c("frequency","density"), d_time=1/24, max_time=21){

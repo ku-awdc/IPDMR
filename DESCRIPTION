@@ -1,7 +1,7 @@
 Package: IPDMR
 Title: Support Code for the Introduction to Practical Disease Modelling Course
-Version: 0.2.6-4
-Date: 2024-11-01
+Version: 0.3.0-1
+Date: 2024-11-02
 Description: What the package does (one paragraph).
 Authors@R:
   c(
