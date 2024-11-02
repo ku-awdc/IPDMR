@@ -25,8 +25,9 @@ General within-group model class
   model_type = c("sir", "seir"),
   update_type = c("deterministic", "stochastic"),
   transmission_type = c("frequency", "density"),
-  num_E = 3L,
-  d_time = 1L
+  numE = 3L,
+  d_time = 1L,
+  group_number = 0L
 )}\if{html}{\out{</div>}}
 }
 

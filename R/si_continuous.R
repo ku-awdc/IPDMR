@@ -6,7 +6,7 @@
 #' @param init_I
 #' @param time_points
 #'
-#' @importFrom checkmate qassert assert_number
+#' @importFrom checkmate qassert assert_number assert_matrix
 #' @importFrom deSolve ode
 #' @import stringr
 #' @import dplyr

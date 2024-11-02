@@ -85,7 +85,7 @@ sir_stoc <- function(S=99, I=1, R=0, beta=0.25, gamma=0.2, delta=0.05, iteration
 
 
 #' @export
-seir_stoc <- function(S=99, E=0, I=1, R=0, num_E=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0,iterations=1, transmission_type="frequency", d_time=1L, max_time=100L){
+seir_stoc <- function(S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0,iterations=1, transmission_type="frequency", d_time=1L, max_time=100L){
 
   pblapply(seq_len(iterations), \(i){
 
@@ -121,9 +121,9 @@ seir_stoc <- function(S=99, E=0, I=1, R=0, num_E=3L, beta=0.25, omega=0.2, gamma
 
 
 #' @export
-multi_seir_det <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, num_E=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, d_time=1, max_time=100L){
+multi_seir_det <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, d_time=1, max_time=100L){
 
-  output <- multi_wrapper("deterministic", n_groups=n_groups, beta_matrix=beta_matrix, S=S, E=E, I=I, R=R, num_E=num_E, beta=beta, omega=omega, gamma=gamma, delta=delta, vacc=vacc, repl=repl, cull=cull, iterations=1, d_time=d_time, max_time=max_time)
+  output <- multi_wrapper("deterministic", n_groups=n_groups, beta_matrix=beta_matrix, S=S, E=E, I=I, R=R, numE=numE, beta=beta, omega=omega, gamma=gamma, delta=delta, vacc=vacc, repl=repl, cull=cull, iterations=1, d_time=d_time, max_time=max_time)
 
   class(output) <- c("ipdmr_dm", class(output))
   attr(output, "plot_caption") <- str_c("deterministic; ", n_groups, " groups")
@@ -133,9 +133,9 @@ multi_seir_det <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, num_E=3L,
 
 
 #' @export
-multi_seir_stoc <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, num_E=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, iterations=1, d_time=1, max_time=100L){
+multi_seir_stoc <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, iterations=1, d_time=1, max_time=100L){
 
-  output <- multi_wrapper("stochastic", n_groups=n_groups, beta_matrix=beta_matrix, S=S, E=E, I=I, R=R, num_E=num_E, beta=beta, omega=omega, gamma=gamma, delta=delta, vacc=vacc, repl=repl, cull=cull, iterations=iterations, d_time=d_time, max_time=max_time)
+  output <- multi_wrapper("stochastic", n_groups=n_groups, beta_matrix=beta_matrix, S=S, E=E, I=I, R=R, numE=numE, beta=beta, omega=omega, gamma=gamma, delta=delta, vacc=vacc, repl=repl, cull=cull, iterations=iterations, d_time=d_time, max_time=max_time)
 
   class(output) <- c("ipdmr_sm", class(output))
   attr(output, "iterations") <- iterations
@@ -145,7 +145,7 @@ multi_seir_stoc <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, num_E=3L
 }
 
 
-multi_wrapper <- function(update_type, n_groups, beta_matrix, S=99, E=0, I=1, R=0, num_E=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, iterations=1, d_time=1, max_time=100L){
+multi_wrapper <- function(update_type, n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, iterations=1, d_time=1, max_time=100L){
 
   ## Check arguments:
   qassert(n_groups, "X1(0,)")
@@ -155,8 +155,9 @@ multi_wrapper <- function(update_type, n_groups, beta_matrix, S=99, E=0, I=1, R=
   qassert(max_time,"N1(0,)")
 
   model_pars <- list(
-    S=S, E=E, I=I, R=R, num_E=num_E, beta=beta, omega=omega,
-    gamma=gamma, delta=delta, vacc=vacc, repl=repl, cull=cull
+    S=S, E=E, I=I, R=R, numE=numE, beta=beta, omega=omega,
+    gamma=gamma, delta=delta, vacc=vacc, repl=repl, cull=cull,
+    group_number=seq_len(n_groups)
   )
 
   ## Check parameters then build within-group models:
@@ -172,8 +173,9 @@ multi_wrapper <- function(update_type, n_groups, beta_matrix, S=99, E=0, I=1, R=
     group_split() |>
     set_names(str_c("Group_", seq_len(n_groups) |> format() |> str_replace_all(" ", "0"))) |>
     lapply(\(x){
-      md <- WithinGroupModel$new("seir", update_type, "frequency", num_E=x$num_E, d_time=d_time)
-      x$num_E <- NULL
+      md <- WithinGroupModel$new("seir", update_type, "frequency", numE=x$numE, d_time=d_time, group_number=x[["group_number"]])
+      x$numE <- NULL
+      x$group_number <- NULL
       for(nm in names(x)){
         md[[nm]] <- x[[nm]]
       }
@@ -181,14 +183,12 @@ multi_wrapper <- function(update_type, n_groups, beta_matrix, S=99, E=0, I=1, R=
     }) ->
     models
 
-  ## Set up between-group model (we do a deep clone later, so no need to clone here):
-  bgmaster <- BetweenGroupModel$new(models, d_time=d_time, clone_models=FALSE)
-  bgmaster$beta_matrix <- beta_matrix
-
   ## Iterate:
   pblapply(seq_len(iterations), \(i){
 
-    model <- bgmaster$clone(deep=TRUE)
+    ## Set up between-group model:
+    model <- BetweenGroupModel$new(models, d_time=d_time, clone_models=TRUE)
+    model$beta_matrix <- beta_matrix
     model$run(ceiling(max_time/d_time)) |>
       as_tibble() |>
       mutate(Iteration = i) |>

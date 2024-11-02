@@ -48,13 +48,14 @@ WithinGroupModel <- R6::R6Class(
       model_type = c("sir", "seir"),
       update_type = c("deterministic","stochastic"),
       transmission_type = c("frequency","density"),
-      num_E = 3L,
-      d_time = 1L
+      numE = 3L,
+      d_time = 1L,
+      group_number = 0L
     ){
       model_type <- match.arg(model_type)
       update_type <- match.arg(update_type)
       transmission_type <- match.arg(transmission_type)
-      wgm_initialise(super, self, private, model_type, update_type, transmission_type, num_E, d_time)
+      wgm_initialise(super, self, private, model_type, update_type, transmission_type, numE, d_time, group_number)
     },
 
     update = function(
@@ -87,7 +88,6 @@ WithinGroupModel <- R6::R6Class(
     },
 
     trans_external = 0.0,
-    id = 0,
 
     .dummy=NULL
   ),
@@ -98,6 +98,8 @@ WithinGroupModel <- R6::R6Class(
     .transmission_type = character(),
     .d_time = 1,
     .num_E = 3L,
+
+    .group_number = 0L,
 
     .S = 99,
     .E = c(0,0,0),
@@ -116,6 +118,7 @@ WithinGroupModel <- R6::R6Class(
 
     .reset_N = function(){
       private$.N <- private$.S + sum(private$.E) + private$.I + private$.R
+      self$check_state()
     },
 
     .dummy = NULL
@@ -131,11 +134,16 @@ WithinGroupModel <- R6::R6Class(
 
     E = function(value){
       if(missing(value)) return(private$.E)
-      if(private$.update_type=="stochastic"){
-        stopifnot(value%%1==0)
-        private$.E <- rmultinom(1, value, rep(1,private$.numE))[,1]
+      if(length(value)==1L){
+        if(private$.update_type=="stochastic"){
+          stopifnot(value%%1==0)
+          private$.E <- rmultinom(1, value, rep(1,private$.numE))[,1]
+        }else{
+          private$.E <- rep(value/private$.numE, private$.numE)
+        }
       }else{
-        private$.E <- rep(value/private$.numE, private$.numE)
+        stopifnot(value == private$.numE)
+        private$.E <- value
       }
       private$.reset_N()
     },
@@ -205,7 +213,7 @@ WithinGroupModel <- R6::R6Class(
 
     state = function(){
       bind_cols(
-        if(self$id!=0) tibble(Model = self$id),
+        if(private$.group_number!=0L) tibble(Group = private$.group_number),
         tibble(Time = self$time, S = self$S),
         if(private$.model_type=="seir") tibble(E = sum(self$E)),
         tibble(I = self$I, R = self$R)
@@ -219,15 +227,16 @@ WithinGroupModel <- R6::R6Class(
 
 )
 
-wgm_initialise <- function(super, self, private, model_type="hi", update_type, transmission_type, num_E, d_time){
+wgm_initialise <- function(super, self, private, model_type="hi", update_type, transmission_type, numE, d_time, group_number){
 
   private$.model_type <- model_type
   private$.update_type <- update_type
   private$.transmission_type <- transmission_type
-  private$.reset_N()
-  private$.num_E <- num_E
+  private$.num_E <- numE
   self$E <- 0
+  private$.reset_N()
   self$d_time <- d_time
+  private$.group_number <- group_number
   self$check_state()
 
 }
@@ -330,7 +339,6 @@ wgm_update_models <- list(
 
     private$.S <- S + sum(leave_E[,2L]) + sum(leave_I[2:3]) + leave_R - sum(leave_S)
     newE <- E + c(leave_S[1], leave_E[-length(E),1L]) - apply(leave_E,1,sum)
-    if(any(newE < 0)) browser()
     private$.E <- newE
 
     private$.I <- I + leave_E[length(E),1L] - sum(leave_I)

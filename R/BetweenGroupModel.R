@@ -30,7 +30,7 @@ BetweenGroupModel <- R6::R6Class(
       }
 
       if(clone_models){
-        private$.models <- apply(models, \(x) x$clone())
+        private$.models <- lapply(models, \(x) x$clone(deep=TRUE))
       }else{
         private$.models <- models
       }
@@ -62,10 +62,19 @@ BetweenGroupModel <- R6::R6Class(
     run = function(n_steps, d_time=private$.d_time, iterations=1L, include_current=self$time==0){
 
       c(
-        if(include_current) lapply(private$.models, \(x) x$state) else list(),
+        if(include_current){
+          lapply(private$.models, \(x) x$state) |>
+            bind_rows() |>
+            mutate(Group = str_c("Gp", format(seq_along(private$.models)) |> str_replace_all(" ", "0"))) |>
+            list()
+        }else{
+          list()
+        },
         lapply(seq_len(n_steps), function(x){
           self$update()
-          lapply(private$.models, \(x) x$state) |> bind_rows()
+          lapply(private$.models, \(x) x$state) |>
+            bind_rows() |>
+            mutate(Group = str_c("Gp", format(seq_along(private$.models)) |> str_replace_all(" ", "0")))
         })
       ) |>
         bind_rows() |>
@@ -73,6 +82,7 @@ BetweenGroupModel <- R6::R6Class(
         mutate(across(is.numeric, \(x) replace_na(x, 0))) ->
         out
       class(out) <- c("ipdmr_mt", class(out))
+      attr(out, "ngroups") <- private$.ngroups
       out
 
     },
