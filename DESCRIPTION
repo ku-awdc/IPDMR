@@ -1,18 +1,29 @@
 Package: IPDMR
 Title: Support Code for the Introduction to Practical Disease Modelling Course
 Version: 0.3.0-1
-Date: 2024-11-02
-Description: What the package does (one paragraph).
+Date: 2024-11-04
+Description: A collection of functions and classes that are used to illustrate
+  fundamental concepts of disease modelling as part of a physical course series
+  taught jointly by the University of Copenhagen and University of Sydney. The
+  package is not intended to be used for other purposes; you are welcome to
+  do so, but please note that the package may change without notice in order
+  to suit changes to the associated taught course. All functions, arguments and
+  classes are therefore subject to change without following any form of
+  deprecation process.
 Authors@R:
   c(
-    person(given="Matt", family="Denwood", email="md@sund.ku.dk", role=c("aut", "cre"))
-  )    
+    person(given="Matt", family="Denwood", email="md@sund.ku.dk", role=c("aut", "cre")),
+    person(given="Carsten", family="Kirkeby", email="ckir@sund.ku.dk", role=c("rev")),
+    person(given="Michael", family="Ward", email="michael.ward@sydney.edu.au", role=c("rev"))
+  )
 License: GPL (>= 3)
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 Depends:
-  R (>= 4.1.0)
+  R (>= 4.3.0)
+LinkingTo:
+  Rcpp
 Imports:
   rlang,
   dplyr,
@@ -23,6 +34,7 @@ Imports:
   tidyr,
   stringr,
   R6,
+  Rcpp,
   pbapply
 Suggests: 
   knitr,
