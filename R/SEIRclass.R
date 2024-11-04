@@ -146,7 +146,7 @@ SEIRclass <- R6::R6Class("SEIRclass",
       if(is.na(private$.group_name)){
         cat("An SEIR model with ")
       }else{
-        cat("An SEIR model with identifier/name '", private$.group_name, "' and ")
+        cat("An SEIR model with identifier/name '", private$.group_name, "' and ", sep="")
       }
       cat("the following properties:\n\t",
         "S/E/I/R (N) = ", self$S, "/", self$E, "/", self$I, "/", self$R, " (", self$N, ")\n\t",
@@ -209,14 +209,14 @@ SEIRclass <- R6::R6Class("SEIRclass",
     },
 
     get_transmission_rate = function(){
-      if(private$.transmission_type=="frequency"){
+      if(self$transmission_type=="frequency"){
         trans_internal <- private$.beta * private$.I / private$.N
-      }else if(private$.transmission_type=="density"){
-        trans_internal <- private$.beta * private$I
+      }else if(self$transmission_type=="density"){
+        trans_internal <- private$.beta * private$.I
       }else{
-        stop("Unrecognised transmission type: ", private$.transmission_type)
+        stop("Unrecognised transmission type: ", self$transmission_type)
       }
-      trans_internal + private$.trans_external
+      trans_internal + self$trans_external
     },
 
     reset_N = function(){

@@ -7,7 +7,8 @@
 class BaseModel
 {
 public:
-  virtual void get_id() const = 0;
+  virtual bool is_cpp() const = 0;
+  virtual int get_id() const = 0;
   virtual void save() = 0;
   virtual void reset() = 0;
   virtual void set_trans_external(const double trans_external) = 0;
@@ -32,9 +33,15 @@ public:
   }
 
   // Overridden virtual methods:
-  void get_id() const override
+  bool is_cpp() const override
   {
-
+    return true;
+  }
+  
+  int get_id() const override
+  {
+    // TODO: generate ID in constructor (maybe in base class?)
+    return 0;
   }
 
   void save() override
