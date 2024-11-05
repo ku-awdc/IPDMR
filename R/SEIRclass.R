@@ -1,9 +1,16 @@
 #' Encapsulated OO classes for within-group SEIR models
 #'
-#' Both R6 and C++ implementations are available - see make_seir_model for
-#' a wrapper function
+#' Both R6 and C++ implementations are available - see make_group for
+#' a wrapper function that returns either implementation. However, the
+#' The method signatures and outputs of the R6 and C++ implementations are
+#' (or at least should be!) identical, so this documentation applies to
+#' the C++ implementation as well as the R6 implementation.
 #'
+#' TODO: fully document this class
+#'
+#' @importFrom stats rmultinom quantile
 #' @import R6
+#'
 #' @export
 SEIRclass <- R6::R6Class("SEIRclass",
 
@@ -13,10 +20,9 @@ SEIRclass <- R6::R6Class("SEIRclass",
     #' Create a new within-group model
     #' @param update_type
     #' @param numE
-    #' @param d_time
     #' @param group_name
     #' @return A new within-group model object
-    initialize = function(update_type = c("deterministic","stochastic"), numE = 3L, d_time=0.1, group_name=NA_character_){
+    initialize = function(update_type = c("deterministic","stochastic"), numE = 3L, group_name=NA_character_){
       ## Checking and partial matching:
       update_type <- match.arg(update_type)
       private$.update_type <- update_type
@@ -27,10 +33,6 @@ SEIRclass <- R6::R6Class("SEIRclass",
       private$.numE <- as.integer(numE)
       private$.E <- numeric(private$.numE)
       private$reset_N()
-
-      ## Check and save default d_time:
-      qassert(d_time, "N1(0,)")
-      private$.d_time <- d_time
 
       ## Save group name:
       qassert(group_name, "s1")
@@ -86,7 +88,7 @@ SEIRclass <- R6::R6Class("SEIRclass",
     },
 
     ## Modified update method:
-    update = function(d_time = private$.d_time){
+    update = function(d_time){
 
       assert_number(d_time, lower=0)
 
@@ -127,9 +129,9 @@ SEIRclass <- R6::R6Class("SEIRclass",
     },
 
     ## Exactly the same as before:
-    run = function(add_time, d_time=private$.d_time, include_current=self$time==0){
+    run = function(add_time, d_time){
       c(
-        if(include_current) list(self$state) else list(),
+        if(self$time==0) list(self$state) else list(),
         lapply(seq(self$time+d_time, self$time+add_time, by=d_time), function(x){
           self$update(d_time)$state
         })
@@ -171,7 +173,6 @@ SEIRclass <- R6::R6Class("SEIRclass",
     .N = numeric(), # Set by reset_N method
     .update_type = character(), # Set at initialisation
     .numE = integer(), # Set at initialisation
-    .d_time = numeric(), # Set at initialisation
     .transmission_type = character(), # Set at initialisation
 
     .time = 0,

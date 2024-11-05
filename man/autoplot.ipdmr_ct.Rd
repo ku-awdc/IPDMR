@@ -2,13 +2,15 @@
 % Please edit documentation in R/autoplot_methods.R
 \name{autoplot.ipdmr_ct}
 \alias{autoplot.ipdmr_ct}
-\title{Title}
+\title{Autoplot methods associated with IPDMR model functions}
 \usage{
 \method{autoplot}{ipdmr_ct}(object, ...)
 }
 \arguments{
-\item{...}{}
+\item{object}{an object returned by an IPDMR model function}
+
+\item{...}{additional arguments (currently ignored)}
 }
 \description{
-Title
+Autoplot methods associated with IPDMR model functions
 }

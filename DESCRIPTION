@@ -1,7 +1,7 @@
 Package: IPDMR
 Title: Support Code for the Introduction to Practical Disease Modelling Course
-Version: 0.3.0-1
-Date: 2024-11-04
+Version: 0.4.0-1
+Date: 2024-11-05
 Description: A collection of functions and classes that are used to illustrate
   fundamental concepts of disease modelling as part of a physical course series
   taught jointly by the University of Copenhagen and University of Sydney. The
@@ -25,6 +25,8 @@ Depends:
 LinkingTo:
   Rcpp
 Imports:
+  methods,
+  stats,
   rlang,
   dplyr,
   tibble,

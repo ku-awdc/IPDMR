@@ -1,6 +1,7 @@
 `$` <- function(lhs,rhs){
   name <- deparse(substitute(rhs))
   if(is.environment(lhs) &&
+      !".pointer" %in% names(lhs) &&
       !name %in% c(names(lhs),"active","private","super","deep_clone") &&
       !str_sub(name, 1L, 1L)==".")
     stop(name, " not present in environment")

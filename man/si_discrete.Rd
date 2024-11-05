@@ -2,25 +2,35 @@
 % Please edit documentation in R/si_discrete.R
 \name{si_discrete}
 \alias{si_discrete}
-\title{Title}
+\title{A simple discrete-time SI model}
 \usage{
 si_discrete(
   S = 9,
   I = 1,
   beta = 0.05,
-  type = c("frequency", "density"),
+  transmission_type = c("frequency", "density"),
   d_time = 1/24,
   max_time = 21
 )
 }
 \arguments{
-\item{max_time}{}
+\item{S}{the starting number of susceptible animals (continuous number)}
+
+\item{I}{the starting number of infected animals (continuous number)}
+
+\item{beta}{the transmission rate per unit time (must be positive)}
+
+\item{transmission_type}{either frequency or density}
+
+\item{d_time}{the desired time step (delta time)}
+
+\item{max_time}{the desired maximum time point (must be greater than the time step)}
 }
 \description{
-Title
+A simple discrete-time SI model
 }
 \examples{
-si_discrete(S=9, I=1, type="density") |> ggplot2::autoplot()
-si_discrete(S=9, I=1, type="frequency") |> ggplot2::autoplot()
+si_discrete(S=9, I=1, transmission_type="density") |> ggplot2::autoplot()
+si_discrete(S=9, I=1, transmission_type="frequency") |> ggplot2::autoplot()
 
 }

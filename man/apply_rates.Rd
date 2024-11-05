@@ -2,7 +2,7 @@
 % Please edit documentation in R/apply_rates.R
 \name{apply_rates}
 \alias{apply_rates}
-\title{Title}
+\title{Combine compartment sizes and rates to obtain compartment change values}
 \usage{
 apply_rates(
   compartments,
@@ -12,8 +12,20 @@ apply_rates(
 )
 }
 \arguments{
-\item{update_type}{deterministic (default) or stochastic}
+\item{compartments}{a vector of compartment sizes on which to apply all rates}
+
+\item{rates}{a vector of rates representing movement from each of the compartments}
+
+\item{d_time}{the size of the time step}
+
+\item{update_type}{deterministic or stochastic}
 }
 \description{
-Title
+This is utility function taking a vector of compartments and rates, and
+returning a matrix of calculated (for deterministic) or sampled (for
+stochastic) values for the change in compartment size from each input
+compartment (rows) to each of the output compartments represented by the
+input rates (columns). For most cases there will be only 1 compartment,
+so a matrix with a single row is returned. Multiple rows are only relevant
+where there are multiple sub-compartments, i.e. movement from the E state.
 }

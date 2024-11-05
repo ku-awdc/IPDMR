@@ -12,8 +12,10 @@ cat(readLines("src/module/ipdmr_module_template.cpp"), sep="\n", file="src/ipdmr
 ct <- paste0("\t", readLines("src/module/class_template.cpp")) |> paste(collapse="\n")
 
 tribble(~Name, ~Template,
-  "SEIRdb", "SEIRmodel<true>",
-  "SEIR", "SEIRmodel<false>",
+  "SEIRdetN", "SEIRmodel<update_type::deterministic, false, 0L, true>",
+  "SEIRstocN", "SEIRmodel<update_type::stochastic, false, 0L, true>",
+  "SEIRdet3", "SEIRmodel<update_type::deterministic, true, 3L, true>",
+  "SEIRstoc3", "SEIRmodel<update_type::stochastic, true, 3L, true>",
 ) |>
   rowwise() |>
   group_split() |>

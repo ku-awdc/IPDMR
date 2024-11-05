@@ -1,10 +1,10 @@
-#' Title
+#' A simple continuous-time SI model
 #'
-#' @param N
-#' @param beta
-#' @param type
-#' @param init_I
-#' @param time_points
+#' @param S the starting number of susceptible animals (continuous number)
+#' @param I the starting number of infected animals (continuous number)
+#' @param beta the transmission rate per unit time (must be positive)
+#' @param transmission_type either frequency or density
+#' @param time_points a vector of time points to include in the data frame returned
 #'
 #' @importFrom checkmate qassert assert_number assert_matrix
 #' @importFrom deSolve ode
@@ -12,11 +12,11 @@
 #' @import dplyr
 #'
 #' @examples
-#' si_continuous(S=9, I=1, type="density") |> ggplot2::autoplot()
-#' si_continuous(S=9, I=1, type="frequency") |> ggplot2::autoplot()
+#' si_continuous(S=9, I=1, transmission_type="density") |> ggplot2::autoplot()
+#' si_continuous(S=9, I=1, transmission_type="frequency") |> ggplot2::autoplot()
 #'
 #' @export
-si_continuous <- function(S=9, I=1, beta=0.05, type=c("frequency","density"), time_points=seq(0,21,by=0.1)){
+si_continuous <- function(S=9, I=1, beta=0.05, transmission_type=c("frequency","density"), time_points=seq(0,21,by=0.1)){
 
   qassert(S, "N1[0,)")
   qassert(I, "N1[0,)")
@@ -25,7 +25,7 @@ si_continuous <- function(S=9, I=1, beta=0.05, type=c("frequency","density"), ti
   qassert(beta, "N1(0,)")
   qassert(time_points, "N+[0,)")
 
-  type <- match.arg(type)
+  type <- match.arg(transmission_type)
 
   model_dens <- function(times, y, parameters)
   {
@@ -59,6 +59,10 @@ si_continuous <- function(S=9, I=1, beta=0.05, type=c("frequency","density"), ti
 
 
 
+#' A super-simple continuous-time two-compartment model
+#'
+#' @param rate the rate of progression from A to B per unit time (must be positive)
+#' @param time_points a vector of time points to include in the data frame returned
 #' @export
 ab_continuous <- function(rate=0.1, time_points=seq(0,10,by=0.1)){
 

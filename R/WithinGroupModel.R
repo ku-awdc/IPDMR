@@ -30,14 +30,6 @@ if(FALSE){
 }
 
 
-#' @title WithinGroupModel
-#'
-#' @description
-#' General within-group model class
-#'
-#' @importFrom tibble tibble
-#' @importFrom dplyr bind_rows
-#' @export
 WithinGroupModel <- R6::R6Class(
 
   "WithinGroupModel",

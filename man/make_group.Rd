@@ -2,20 +2,42 @@
 % Please edit documentation in R/make_group.R
 \name{make_group}
 \alias{make_group}
-\title{Title}
+\title{Generate an object representing a within-group spread model}
 \usage{
 make_group(
   update_type = c("deterministic", "stochastic"),
   numE = 3L,
-  d_time = 0.1,
   group_name = NA_character_,
   model_type = c("SEIR", "SIR", "SI"),
-  implementation = c("R", "C++")
+  implementation = c("C++", "R6")
 )
 }
 \arguments{
-\item{implementation}{}
+\item{update_type}{either stochastic or deterministic}
+
+\item{numE}{the number of sub-compartments desired for the E state}
+
+\item{group_name}{an optional name for the group}
+
+\item{model_type}{the compartmental model representation desired (currently only SEIR is supported)}
+
+\item{implementation}{either C++ or R6}
 }
 \description{
-Title
+This is a wrapper function around the new/initialise methods for R6 and C++
+implementations of within-group spread models used on the IPDMR course.
+The method signatures and outputs of the R6 and C++ implementations are
+(or at least should be!) identical. For more information on available methods
+see the help file for SEIRclass (the R6 implementation).
+}
+\examples{
+set.seed(2024-11-05)
+r6res <- make_group(update_type = "stochastic", implementation = "R6")$run(10, 0.1)
+
+set.seed(2024-11-05)
+cppres <- make_group(update_type = "stochastic", implementation = "C++")$run(10, 0.1)
+
+## Should be identical:
+stopifnot(unlist(r6res) - unlist(cppres) == 0L)
+
 }

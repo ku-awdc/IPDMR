@@ -1,7 +1,7 @@
-#' Title
+#' Autoplot methods associated with IPDMR model functions
 #'
-#' @param object
-#' @param ...
+#' @param object an object returned by an IPDMR model function
+#' @param ... additional arguments (currently ignored)
 #'
 #' @import ggplot2
 #' @importFrom tidyr pivot_longer replace_na

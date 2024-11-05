@@ -9,8 +9,13 @@ Encapsulated OO classes for within-group SEIR models
 Encapsulated OO classes for within-group SEIR models
 }
 \details{
-Both R6 and C++ implementations are available - see make_seir_model for
-a wrapper function
+Both R6 and C++ implementations are available - see make_group for
+a wrapper function that returns either implementation. However, the
+The method signatures and outputs of the R6 and C++ implementations are
+(or at least should be!) identical, so this documentation applies to
+the C++ implementation as well as the R6 implementation.
+
+TODO: fully document this class
 }
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
@@ -41,7 +46,6 @@ Create a new within-group model
 \if{html}{\out{<div class="r">}}\preformatted{SEIRclass$new(
   update_type = c("deterministic", "stochastic"),
   numE = 3L,
-  d_time = 0.1,
   group_name = NA_character_
 )}\if{html}{\out{</div>}}
 }
@@ -73,7 +77,7 @@ A new within-group model object
 \if{latex}{\out{\hypertarget{method-SEIRclass-update}{}}}
 \subsection{Method \code{update()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SEIRclass$update(d_time = private$.d_time)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{SEIRclass$update(d_time)}\if{html}{\out{</div>}}
 }
 
 }
@@ -82,11 +86,7 @@ A new within-group model object
 \if{latex}{\out{\hypertarget{method-SEIRclass-run}{}}}
 \subsection{Method \code{run()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SEIRclass$run(
-  add_time,
-  d_time = private$.d_time,
-  include_current = self$time == 0
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{SEIRclass$run(add_time, d_time)}\if{html}{\out{</div>}}
 }
 
 }

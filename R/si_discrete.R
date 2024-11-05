@@ -1,20 +1,20 @@
-#' Title
+#' A simple discrete-time SI model
 #'
-#' @param S
-#' @param I
-#' @param beta
-#' @param type
-#' @param d_time
-#' @param max_time
+#' @param S the starting number of susceptible animals (continuous number)
+#' @param I the starting number of infected animals (continuous number)
+#' @param beta the transmission rate per unit time (must be positive)
+#' @param transmission_type either frequency or density
+#' @param d_time the desired time step (delta time)
+#' @param max_time the desired maximum time point (must be greater than the time step)
 #'
 #' @importFrom checkmate qassert assert_number
 #'
 #' @examples
-#' si_discrete(S=9, I=1, type="density") |> ggplot2::autoplot()
-#' si_discrete(S=9, I=1, type="frequency") |> ggplot2::autoplot()
+#' si_discrete(S=9, I=1, transmission_type="density") |> ggplot2::autoplot()
+#' si_discrete(S=9, I=1, transmission_type="frequency") |> ggplot2::autoplot()
 #'
 #' @export
-si_discrete <- function(S=9, I=1, beta=0.05, type=c("frequency","density"), d_time=1/24, max_time=21){
+si_discrete <- function(S=9, I=1, beta=0.05, transmission_type=c("frequency","density"), d_time=1/24, max_time=21){
 
   qassert(S, "N1[0,)")
   qassert(I, "N1[0,)")
@@ -26,7 +26,7 @@ si_discrete <- function(S=9, I=1, beta=0.05, type=c("frequency","density"), d_ti
   assert_number(max_time, lower=d_time)
 
   ntime <- ceiling(max_time/d_time)+1L
-  type <- match.arg(type)
+  type <- match.arg(transmission_type)
 
   i_dens <- function(i) 1 - exp(-beta * i)
   i_freq <- function(i) 1 - exp(-beta * i/N)
@@ -60,6 +60,11 @@ si_discrete <- function(S=9, I=1, beta=0.05, type=c("frequency","density"), d_ti
 
 
 
+#' A super-simple discrete-time two-compartment model
+#'
+#' @param rate the rate of progression from A to B per unit time (must be positive)
+#' @param d_time the desired time step (delta time)
+#' @param max_time the desired maximum time point (must be greater than the time step)
 #' @export
 ab_discrete <- function(rate=0.1, d_time=0.1, max_time=10){
 

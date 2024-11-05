@@ -2,24 +2,32 @@
 % Please edit documentation in R/si_continuous.R
 \name{si_continuous}
 \alias{si_continuous}
-\title{Title}
+\title{A simple continuous-time SI model}
 \usage{
 si_continuous(
   S = 9,
   I = 1,
   beta = 0.05,
-  type = c("frequency", "density"),
+  transmission_type = c("frequency", "density"),
   time_points = seq(0, 21, by = 0.1)
 )
 }
 \arguments{
-\item{time_points}{}
+\item{S}{the starting number of susceptible animals (continuous number)}
+
+\item{I}{the starting number of infected animals (continuous number)}
+
+\item{beta}{the transmission rate per unit time (must be positive)}
+
+\item{transmission_type}{either frequency or density}
+
+\item{time_points}{a vector of time points to include in the data frame returned}
 }
 \description{
-Title
+A simple continuous-time SI model
 }
 \examples{
-si_continuous(S=9, I=1, type="density") |> ggplot2::autoplot()
-si_continuous(S=9, I=1, type="frequency") |> ggplot2::autoplot()
+si_continuous(S=9, I=1, transmission_type="density") |> ggplot2::autoplot()
+si_continuous(S=9, I=1, transmission_type="frequency") |> ggplot2::autoplot()
 
 }

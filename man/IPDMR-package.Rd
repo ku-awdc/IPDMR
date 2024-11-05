@@ -4,27 +4,19 @@
 \name{IPDMR-package}
 \alias{IPDMR-package}
 \alias{IPDMR}
-\title{What the Package Does (One Line, Title Case)}
+\title{Support Code for the Introduction to Practical Disease Modelling Course}
 \description{
 A collection of functions and classes that are used to illustrate fundamental concepts of disease modelling as part of a physical course series taught jointly by the University of Copenhagen and University of Sydney. The package is not intended to be used for other purposes; you are welcome to do so, but please note that the package may change without notice in order to suit changes to the associated taught course. All functions, arguments and classes are therefore subject to change without following any form of deprecation process.
 }
 \details{
-Some description of the package
-}
-\examples{
-## An example function:
-df <- example_function()
-df
-
-## To cite this package in publications use:
-citation("IPDMR")
-
-}
-\references{
-Some article that you might want users to look at
-}
-\seealso{
-\code{\link[neatpkg]{pkg_new}} for the function that created this package
+A collection of functions and classes that are used to illustrate
+fundamental concepts of disease modelling as part of a physical course series
+taught jointly by the University of Copenhagen and University of Sydney. The
+package is not intended to be used for other purposes; you are welcome to
+do so, but please note that the package may change without notice in order
+to suit changes to the associated taught course. All functions, arguments and
+classes are therefore subject to change without following any form of
+deprecation process.
 }
 \author{
 \strong{Maintainer}: Matt Denwood \email{md@sund.ku.dk}

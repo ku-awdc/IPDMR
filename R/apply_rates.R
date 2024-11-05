@@ -1,9 +1,18 @@
-#' Title
+#' Combine compartment sizes and rates to obtain compartment change values
 #'
-#' @param compartments
-#' @param rates
-#' @param d_time
-#' @param update_type deterministic (default) or stochastic
+#' @description
+#' This is utility function taking a vector of compartments and rates, and
+#' returning a matrix of calculated (for deterministic) or sampled (for
+#' stochastic) values for the change in compartment size from each input
+#' compartment (rows) to each of the output compartments represented by the
+#' input rates (columns). For most cases there will be only 1 compartment,
+#' so a matrix with a single row is returned. Multiple rows are only relevant
+#' where there are multiple sub-compartments, i.e. movement from the E state.
+#'
+#' @param compartments a vector of compartment sizes on which to apply all rates
+#' @param rates a vector of rates representing movement from each of the compartments
+#' @param d_time the size of the time step
+#' @param update_type deterministic or stochastic
 #'
 #' @export
 apply_rates <- function(compartments, rates, d_time, update_type=c("deterministic","stochastic")){

@@ -4,13 +4,15 @@
 \alias{BetweenGroupModel}
 \title{BetweenGroupModel}
 \description{
-General between-group model class
+A general-purpose between-group model spread class
 }
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
 \item \href{#method-BetweenGroupModel-new}{\code{BetweenGroupModel$new()}}
 \item \href{#method-BetweenGroupModel-update}{\code{BetweenGroupModel$update()}}
+\item \href{#method-BetweenGroupModel-save}{\code{BetweenGroupModel$save()}}
+\item \href{#method-BetweenGroupModel-reset}{\code{BetweenGroupModel$reset()}}
 \item \href{#method-BetweenGroupModel-run}{\code{BetweenGroupModel$run()}}
 \item \href{#method-BetweenGroupModel-clone}{\code{BetweenGroupModel$clone()}}
 }
@@ -20,7 +22,7 @@ General between-group model class
 \if{latex}{\out{\hypertarget{method-BetweenGroupModel-new}{}}}
 \subsection{Method \code{new()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BetweenGroupModel$new(models, d_time = 0.1, clone_models = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{BetweenGroupModel$new(models)}\if{html}{\out{</div>}}
 }
 
 }
@@ -29,7 +31,25 @@ General between-group model class
 \if{latex}{\out{\hypertarget{method-BetweenGroupModel-update}{}}}
 \subsection{Method \code{update()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BetweenGroupModel$update(d_time = private$.d_time)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{BetweenGroupModel$update(d_time)}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BetweenGroupModel-save"></a>}}
+\if{latex}{\out{\hypertarget{method-BetweenGroupModel-save}{}}}
+\subsection{Method \code{save()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BetweenGroupModel$save()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-BetweenGroupModel-reset"></a>}}
+\if{latex}{\out{\hypertarget{method-BetweenGroupModel-reset}{}}}
+\subsection{Method \code{reset()}}{
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{BetweenGroupModel$reset()}\if{html}{\out{</div>}}
 }
 
 }
@@ -38,12 +58,7 @@ General between-group model class
 \if{latex}{\out{\hypertarget{method-BetweenGroupModel-run}{}}}
 \subsection{Method \code{run()}}{
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{BetweenGroupModel$run(
-  n_steps,
-  d_time = private$.d_time,
-  iterations = 1L,
-  include_current = self$time == 0
-)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{BetweenGroupModel$run(n_steps, d_time)}\if{html}{\out{</div>}}
 }
 
 }
