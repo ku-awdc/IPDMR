@@ -49,7 +49,7 @@ si_discrete <- function(S=9, I=1, beta=0.05, transmission_type=c("frequency","de
 
   output |>
     as_tibble() |>
-    select(.data$Time, everything()) |>
+    select("Time", everything()) |>
     filter(.data$Time <= max_time) ->
     output
 
@@ -99,7 +99,7 @@ ab_discrete <- function(rate=0.1, d_time=0.1, max_time=10){
 
   output |>
     as_tibble() |>
-    select(.data$Time, everything()) |>
+    select("Time", everything()) |>
     filter(.data$Time <= max_time) ->
     output
 

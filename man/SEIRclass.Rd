@@ -4,23 +4,48 @@
 \alias{SEIRclass}
 \title{Encapsulated OO classes for within-group SEIR models}
 \description{
-Encapsulated OO classes for within-group SEIR models
-
-Encapsulated OO classes for within-group SEIR models
-}
-\details{
-Both R6 and C++ implementations are available - see make_group for
+This is a within-group SEIR model class that can either be run on its own
+or embedded in a between-group model.
+Both R6 and C++ implementations are available - see \link{make_group} for
 a wrapper function that returns either implementation. However, the
-The method signatures and outputs of the R6 and C++ implementations are
+method signatures and outputs of the R6 and C++ implementations are
 (or at least should be!) identical, so this documentation applies to
 the C++ implementation as well as the R6 implementation.
-
-TODO: fully document this class
 }
 \section{Active bindings}{
 \if{html}{\out{<div class="r6-active-bindings">}}
 \describe{
 \item{\code{S}}{number of susceptible animals}
+
+\item{\code{E}}{total number of exposed individuals - changing this value will cause the provided total to be distributed evenly (deterministic) or randomly (stochastic) between sub-compartments}
+
+\item{\code{I}}{number of infected animals}
+
+\item{\code{R}}{number of recovered animals}
+
+\item{\code{beta}}{the transmission rate parameter per unit time (must be positive)}
+
+\item{\code{omega}}{the latent progression rate parameter per unit time (must be positive)}
+
+\item{\code{gamma}}{the recovery rate parameter per unit time (must be positive)}
+
+\item{\code{delta}}{the reversion rate parameter per unit time (must be positive)}
+
+\item{\code{vacc}}{the vaccination rate parameter per unit time (must be positive)}
+
+\item{\code{repl}}{the replacement rate parameter per unit time (must be positive)}
+
+\item{\code{cull}}{the targeted culling rate parameter per unit time (must be positive)}
+
+\item{\code{time}}{the current time point of the model (read-only)}
+
+\item{\code{N}}{the total number of animals in the group (read-only)}
+
+\item{\code{state}}{a data frame representing the current state of the model (read-only)}
+
+\item{\code{trans_external}}{the external transmission parameter}
+
+\item{\code{transmission_type}}{either frequency or density}
 }
 \if{html}{\out{</div>}}
 }
@@ -32,7 +57,6 @@ TODO: fully document this class
 \item \href{#method-SEIRclass-reset}{\code{SEIRclass$reset()}}
 \item \href{#method-SEIRclass-update}{\code{SEIRclass$update()}}
 \item \href{#method-SEIRclass-run}{\code{SEIRclass$run()}}
-\item \href{#method-SEIRclass-get_state}{\code{SEIRclass$get_state()}}
 \item \href{#method-SEIRclass-print}{\code{SEIRclass$print()}}
 \item \href{#method-SEIRclass-clone}{\code{SEIRclass$clone()}}
 }
@@ -41,7 +65,7 @@ TODO: fully document this class
 \if{html}{\out{<a id="method-SEIRclass-new"></a>}}
 \if{latex}{\out{\hypertarget{method-SEIRclass-new}{}}}
 \subsection{Method \code{new()}}{
-Create a new within-group model
+Create a new within-group model (this would normally be called from \link{make_group})
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{SEIRclass$new(
   update_type = c("deterministic", "stochastic"),
@@ -50,6 +74,17 @@ Create a new within-group model
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{update_type}}{one of deterministic or stochastic}
+
+\item{\code{numE}}{the number of sub-compartments within the exposed/latent state}
+
+\item{\code{group_name}}{an optional name for the group (will be included in the output state, if provided)}
+}
+\if{html}{\out{</div>}}
+}
 \subsection{Returns}{
 A new within-group model object
 }
@@ -58,55 +93,82 @@ A new within-group model object
 \if{html}{\out{<a id="method-SEIRclass-save"></a>}}
 \if{latex}{\out{\hypertarget{method-SEIRclass-save}{}}}
 \subsection{Method \code{save()}}{
+Save the current state and parameter values for later retrieval using reset()
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{SEIRclass$save()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+self, invisibly
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-SEIRclass-reset"></a>}}
 \if{latex}{\out{\hypertarget{method-SEIRclass-reset}{}}}
 \subsection{Method \code{reset()}}{
+Reset the current state and parameter values to their last saved state
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{SEIRclass$reset()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+self, invisibly
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-SEIRclass-update"></a>}}
 \if{latex}{\out{\hypertarget{method-SEIRclass-update}{}}}
 \subsection{Method \code{update()}}{
+Update the state of the group for a single time point
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{SEIRclass$update(d_time)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{d_time}}{the desired time step (delta time)}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+self, invisibly
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-SEIRclass-run"></a>}}
 \if{latex}{\out{\hypertarget{method-SEIRclass-run}{}}}
 \subsection{Method \code{run()}}{
+Update the state of the group for several time points
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{SEIRclass$run(add_time, d_time)}\if{html}{\out{</div>}}
 }
 
-}
-\if{html}{\out{<hr>}}
-\if{html}{\out{<a id="method-SEIRclass-get_state"></a>}}
-\if{latex}{\out{\hypertarget{method-SEIRclass-get_state}{}}}
-\subsection{Method \code{get_state()}}{
-\subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{SEIRclass$get_state()}\if{html}{\out{</div>}}
-}
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{add_time}}{the additional time to add to the current time of the model}
 
+\item{\code{d_time}}{the desired time step (delta time)}
+}
+\if{html}{\out{</div>}}
+}
+\subsection{Returns}{
+a data frame of the model state at each (new) time point
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-SEIRclass-print"></a>}}
 \if{latex}{\out{\hypertarget{method-SEIRclass-print}{}}}
 \subsection{Method \code{print()}}{
+Print method giving an overview of the current state and parameter values
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{SEIRclass$print()}\if{html}{\out{</div>}}
 }
 
+\subsection{Returns}{
+self, invisibly
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-SEIRclass-clone"></a>}}

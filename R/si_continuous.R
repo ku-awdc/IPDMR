@@ -11,9 +11,6 @@
 #' @import stringr
 #' @import dplyr
 #'
-#' @examples
-#' si_continuous(S=9, I=1, transmission_type="density") |> ggplot2::autoplot()
-#' si_continuous(S=9, I=1, transmission_type="frequency") |> ggplot2::autoplot()
 #'
 #' @export
 si_continuous <- function(S=9, I=1, beta=0.05, transmission_type=c("frequency","density"), time_points=seq(0,21,by=0.1)){
@@ -83,7 +80,7 @@ ab_continuous <- function(rate=0.1, time_points=seq(0,10,by=0.1)){
     as.data.frame() |>
     as_tibble() |>
     mutate(A = pmax(.data$A, 0)) |>
-    select(Time=.data$time, A=.data$A) ->
+    select(Time="time", "A") ->
     output
 
   class(output) <- c("ipdmr_ct", class(output))

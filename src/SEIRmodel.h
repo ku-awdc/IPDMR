@@ -526,11 +526,12 @@ public:
     }
     Rcpp::Rcout << "current time = " << m_state.timepoint << "\n";
 
+    /*
     if constexpr (t_debug){
       Rcpp::Rcout << "\t[C++ implementation; DEBUG mode]\n";
     }else{
       Rcpp::Rcout << "\t[C++ implementation]\n";
-    }
+    }*/
 
   }
 
@@ -538,7 +539,8 @@ public:
   {
 
     const bool include_current = m_state.timepoint==0.0;
-    int rows = static_cast<int>(add_time/d_time) + static_cast<int>(include_current);
+    const int addi = static_cast<int>(include_current);
+    int rows = static_cast<int>(add_time/d_time) + addi;
 
     Rcpp::NumericVector Time(rows);
     typedef typename std::conditional<
@@ -550,23 +552,22 @@ public:
     VT R(rows);
 
     if(include_current){
-      const int i=0;
+      constexpr int i=0;
       Time[i] = get_time();
       S[i] = get_S();
       E[i] = get_E();
       I[i] = get_I();
       R[i] = get_R();
     }
-    const int addi = static_cast<int>(include_current);
 
-    for(int i=0; i<rows; ++i)
+    for(int i=addi; i<rows; ++i)
     {
       update(d_time);
-      Time[i+addi] = get_time();
-      S[i+addi] = get_S();
-      E[i+addi] = get_E();
-      I[i+addi] = get_I();
-      R[i+addi] = get_R();
+      Time[i] = get_time();
+      S[i] = get_S();
+      E[i] = get_E();
+      I[i] = get_I();
+      R[i] = get_R();
     }
 
     Rcpp::DataFrame rv = Rcpp::DataFrame::create(

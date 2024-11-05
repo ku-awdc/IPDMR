@@ -1,12 +1,13 @@
 #' Encapsulated OO classes for within-group SEIR models
 #'
-#' Both R6 and C++ implementations are available - see make_group for
+#' @description
+#' This is a within-group SEIR model class that can either be run on its own
+#' or embedded in a between-group model.
+#' Both R6 and C++ implementations are available - see \link{make_group} for
 #' a wrapper function that returns either implementation. However, the
-#' The method signatures and outputs of the R6 and C++ implementations are
+#' method signatures and outputs of the R6 and C++ implementations are
 #' (or at least should be!) identical, so this documentation applies to
 #' the C++ implementation as well as the R6 implementation.
-#'
-#' TODO: fully document this class
 #'
 #' @importFrom stats rmultinom quantile
 #' @import R6
@@ -17,10 +18,10 @@ SEIRclass <- R6::R6Class("SEIRclass",
   public = mlist(
 
     #' @description
-    #' Create a new within-group model
-    #' @param update_type
-    #' @param numE
-    #' @param group_name
+    #' Create a new within-group model (this would normally be called from \link{make_group})
+    #' @param update_type one of deterministic or stochastic
+    #' @param numE the number of sub-compartments within the exposed/latent state
+    #' @param group_name an optional name for the group (will be included in the output state, if provided)
     #' @return A new within-group model object
     initialize = function(update_type = c("deterministic","stochastic"), numE = 3L, group_name=NA_character_){
       ## Checking and partial matching:
@@ -48,7 +49,9 @@ SEIRclass <- R6::R6Class("SEIRclass",
       self$reset()
     },
 
-    ## New save method:
+    #' @description
+    #' Save the current state and parameter values for later retrieval using reset()
+    #' @return self, invisibly
     save = function(){
       ## Shortcut to save all relevant public fields/active bindings:
       flds <- c("S","E","I","R","beta","omega","gamma","delta",
@@ -70,7 +73,9 @@ SEIRclass <- R6::R6Class("SEIRclass",
       invisible(self)
     },
 
-    ## New reset method:
+    #' @description
+    #' Reset the current state and parameter values to their last saved state
+    #' @return self, invisibly
     reset = function(){
       ## Reset public fields and/or active bindings:
       for(n in names(private$.saved_public)){
@@ -87,7 +92,10 @@ SEIRclass <- R6::R6Class("SEIRclass",
       invisible(self)
     },
 
-    ## Modified update method:
+    #' @description
+    #' Update the state of the group for a single time point
+    #' @param d_time the desired time step (delta time)
+    #' @return self, invisibly
     update = function(d_time){
 
       assert_number(d_time, lower=0)
@@ -128,7 +136,11 @@ SEIRclass <- R6::R6Class("SEIRclass",
       invisible(self)
     },
 
-    ## Exactly the same as before:
+    #' @description
+    #' Update the state of the group for several time points
+    #' @param add_time the additional time to add to the current time of the model
+    #' @param d_time the desired time step (delta time)
+    #' @return a data frame of the model state at each (new) time point
     run = function(add_time, d_time){
       c(
         if(self$time==0) list(self$state) else list(),
@@ -139,11 +151,9 @@ SEIRclass <- R6::R6Class("SEIRclass",
         bind_rows()
     },
 
-    get_state = function(){
-      self$state
-    },
-
-    ## New compact (ish!) print method:
+    #' @description
+    #' Print method giving an overview of the current state and parameter values
+    #' @return self, invisibly
     print = function(){
       if(is.na(private$.group_name)){
         cat("An SEIR model with ")
@@ -160,6 +170,8 @@ SEIRclass <- R6::R6Class("SEIRclass",
         "transmission type = ", private$.transmission_type, "\n\t",
         "current time = ", self$time, "\n\t",
         sep="")
+      invisible(self)
+
     }
   ),
 
@@ -250,6 +262,7 @@ SEIRclass <- R6::R6Class("SEIRclass",
       private$.S <- value
       private$reset_N()
     },
+    #' @field E total number of exposed individuals - changing this value will cause the provided total to be distributed evenly (deterministic) or randomly (stochastic) between sub-compartments
     E = function(value){
       if(missing(value)) return(sum(private$.E))
       qassert(value, private$compartment_rule())
@@ -263,12 +276,14 @@ SEIRclass <- R6::R6Class("SEIRclass",
       }
       private$reset_N()
     },
+    #' @field I number of infected animals
     I = function(value){
       if(missing(value)) return(private$.I)
       qassert(value, private$compartment_rule())
       private$.I <- value
       private$reset_N()
     },
+    #' @field R number of recovered animals
     R = function(value){
       if(missing(value)) return(private$.R)
       qassert(value, private$compartment_rule())
@@ -276,63 +291,71 @@ SEIRclass <- R6::R6Class("SEIRclass",
       private$reset_N()
     },
 
-    ## Same as before
+    #' @field beta the transmission rate parameter per unit time (must be positive)
     beta = function(value){
       if(missing(value)) return(private$.beta)
       assert_number(value, lower=0)
       private$.beta <- value
     },
+    #' @field omega the latent progression rate parameter per unit time (must be positive)
     omega = function(value){
       if(missing(value)) return(private$.omega)
       assert_number(value, lower=0)
       private$.omega <- value
     },
+    #' @field gamma the recovery rate parameter per unit time (must be positive)
     gamma = function(value){
       if(missing(value)) return(private$.gamma)
       assert_number(value, lower=0)
       private$.gamma <- value
     },
+    #' @field delta the reversion rate parameter per unit time (must be positive)
     delta = function(value){
       if(missing(value)) return(private$.delta)
       assert_number(value, lower=0)
       private$.delta <- value
     },
+    #' @field vacc the vaccination rate parameter per unit time (must be positive)
     vacc = function(value){
       if(missing(value)) return(private$.vacc)
       assert_number(value, lower=0)
       private$.vacc <- value
     },
+    #' @field repl the replacement rate parameter per unit time (must be positive)
     repl = function(value){
       if(missing(value)) return(private$.repl)
       assert_number(value, lower=0)
       private$.repl <- value
     },
+    #' @field cull the targeted culling rate parameter per unit time (must be positive)
     cull = function(value){
       if(missing(value)) return(private$.cull)
       assert_number(value, lower=0)
       private$.cull <- value
     },
+    #' @field time the current time point of the model (read-only)
     time = function(){
       private$.time
     },
 
-    ## N is now stored internally, but is still read only:
+    #' @field N the total number of animals in the group (read-only)
     N = function(){
       private$.N
     },
 
-    ## As before, but including E:
+    #' @field state a data frame representing the current state of the model (read-only)
     state = function(){
       tibble(Time = self$time, S = self$S, E = self$E, I = self$I, R = self$R)
     },
 
-    ## New active binding functions:
+    #' @field trans_external the external transmission parameter
     trans_external = function(value){
       if(missing(value)) return(private$.trans_external)
       qassert(value, "N1[0,)")
       private$.trans_external <- value
     },
 
+    #' @field transmission_type either frequency or density
     transmission_type = function(value){
       if(missing(value)) return(private$.transmission_type)
       private$.transmission_type <- match.arg(value,

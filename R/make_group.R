@@ -3,9 +3,9 @@
 #' @description
 #' This is a wrapper function around the new/initialise methods for R6 and C++
 #' implementations of within-group spread models used on the IPDMR course.
-#' The method signatures and outputs of the R6 and C++ implementations are
-#' (or at least should be!) identical. For more information on available methods
-#' see the help file for SEIRclass (the R6 implementation).
+#' For more information on available methods see the documentation for
+#' \link{SEIRclass} (the method signatures and outputs of the R6 and C++
+#' implementations should be identical).
 #'
 #' @param update_type either stochastic or deterministic
 #' @param numE the number of sub-compartments desired for the E state

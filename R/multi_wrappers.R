@@ -112,5 +112,5 @@ multi_wrapper <- function(update_type, n_groups, beta_matrix, S=99, E=0, I=1, R=
       select("Iteration", everything())
   }) |>
     bind_rows() |>
-    {\(x) if(update_type=="deterministic") select(x, -.data$Iteration) else x}()
+    {\(x) if(update_type=="deterministic") select(x, -"Iteration") else x}()
 }

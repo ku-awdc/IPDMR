@@ -26,8 +26,3 @@ si_continuous(
 \description{
 A simple continuous-time SI model
 }
-\examples{
-si_continuous(S=9, I=1, transmission_type="density") |> ggplot2::autoplot()
-si_continuous(S=9, I=1, transmission_type="frequency") |> ggplot2::autoplot()
-
-}
