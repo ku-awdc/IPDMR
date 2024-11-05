@@ -127,7 +127,7 @@ struct parameters
   double repl = 0.0001;
   double cull = 0.002;
   double trans_external = 0.0;
-  trans_type trans_type = trans_type::frequency;
+  trans_type transmission_type = trans_type::frequency;
 };
 
 
@@ -227,12 +227,12 @@ public:
   double transmission_rate()
   {
     double val = 0.0;
-    if(m_pars.trans_type == trans_type::frequency){
+    if(m_pars.transmission_type == trans_type::frequency){
       val = m_pars.beta * m_state.I / m_state.N;
-    }else if(m_pars.trans_type == trans_type::density){
+    }else if(m_pars.transmission_type == trans_type::density){
       val = m_pars.beta * m_state.I;
     }else{
-      Rcpp::stop("Unrecognised m_pars.trans_type");
+      Rcpp::stop("Unrecognised m_pars.transmission_type");
     }
     return val + get_trans_external();
   }
@@ -469,22 +469,22 @@ public:
   void set_trans_type(Rcpp::String val)
   {
     if(val=="frequency"){
-      m_pars.trans_type = trans_type::frequency;
+      m_pars.transmission_type = trans_type::frequency;
     }else if(val=="density"){
-      m_pars.trans_type = trans_type::density;
+      m_pars.transmission_type = trans_type::density;
     }else{
-      Rcpp::stop("Unrecognised trans_type");
+      Rcpp::stop("Unrecognised transmission_type");
     }
   }
   Rcpp::String get_trans_type() const
   {
     Rcpp::String val;
-    if(m_pars.trans_type == trans_type::frequency){
+    if(m_pars.transmission_type == trans_type::frequency){
       val = "frequency";
-    }else if(m_pars.trans_type == trans_type::density){
+    }else if(m_pars.transmission_type == trans_type::density){
       val = "density";
     }else{
-      Rcpp::stop("Unrecognised m_pars.trans_type");
+      Rcpp::stop("Unrecognised m_pars.transmission_type");
     }
     return val;
   }
@@ -519,7 +519,7 @@ public:
     }else{
       Rcpp::Rcout << "update type = " << "stochastic" << "\n\t";
     }
-    if(m_pars.trans_type==trans_type::frequency){
+    if(m_pars.transmission_type==trans_type::frequency){
       Rcpp::Rcout << "transmission type = " << "frequency" << "\n\t";
     }else{
       Rcpp::Rcout << "transmission type = " << "density" << "\n\t";
