@@ -39,7 +39,7 @@ NULL
 #' @export
 multi_seir_det <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, d_time=1, max_time=100){
 
-  output <- multi_wrapper("deterministic", n_groups=n_groups, beta_matrix=beta_matrix, S=S, E=E, I=I, R=R, numE=numE, beta=beta, omega=omega, gamma=gamma, delta=delta, vacc=vacc, repl=repl, cull=cull, iterations=1, d_time=d_time, max_time=max_time)
+  output <- multi_wrapper("deterministic", n_groups=n_groups, beta_matrix=beta_matrix, S=S, E=E, I=I, R=R, numE=numE, beta=beta, omega=omega, gamma=gamma, delta=delta, vacc=vacc, repl=repl, cull=cull, iterations=1, d_time=d_time, max_time=max_time, iterations=1L)
 
   class(output) <- c("ipdmr_dm", class(output))
   attr(output, "plot_caption") <- str_c("deterministic; ", n_groups, " groups")
@@ -51,7 +51,7 @@ multi_seir_det <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, 
 #' @export
 multi_seir_stoc <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, d_time=1, max_time=100, iterations=1L){
 
-  output <- multi_wrapper("stochastic", n_groups=n_groups, beta_matrix=beta_matrix, S=S, E=E, I=I, R=R, numE=numE, beta=beta, omega=omega, gamma=gamma, delta=delta, vacc=vacc, repl=repl, cull=cull, iterations=iterations, d_time=d_time, max_time=max_time)
+  output <- multi_wrapper("stochastic", n_groups=n_groups, beta_matrix=beta_matrix, S=S, E=E, I=I, R=R, numE=numE, beta=beta, omega=omega, gamma=gamma, delta=delta, vacc=vacc, repl=repl, cull=cull, d_time=d_time, max_time=max_time, iterations=iterations)
 
   class(output) <- c("ipdmr_sm", class(output))
   attr(output, "iterations") <- iterations
@@ -61,7 +61,7 @@ multi_seir_stoc <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L,
 }
 
 
-multi_wrapper <- function(update_type, n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, iterations=1, d_time=1, max_time=100L){
+multi_wrapper <- function(update_type, n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, d_time=1, max_time=100L, iterations=1L){
 
   ## Check arguments:
   qassert(n_groups, "X1(0,)")
@@ -112,7 +112,7 @@ multi_wrapper <- function(update_type, n_groups, beta_matrix, S=99, E=0, I=1, R=
 
     ## Reset and run:
     model$reset()
-    model$run(ceiling(max_time/d_time), d_time) |>
+    model$run(max_time, d_time) |>
       as_tibble() |>
       mutate(Iteration = i) |>
       select("Iteration", everything())
