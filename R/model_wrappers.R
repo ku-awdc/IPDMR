@@ -31,7 +31,9 @@ NULL
 
 #' @rdname group_models
 #' @export
-sir_det <- function(S=99, I=1, R=0, beta=0.25, gamma=0.2, delta=0.05, transmission_type="frequency", d_time=1L, max_time=100L){
+sir_det <- function(S=99, I=1, R=0, beta=0.25, gamma=0.2, delta=0.05, transmission_type="frequency", d_time=1, max_time=100){
+
+  qassert(transmission_type, "S1")
 
   model <- WithinGroupModel$new(model_type="sir", update_type="deterministic", transmission_type=transmission_type, d_time=d_time)
 
@@ -50,8 +52,9 @@ sir_det <- function(S=99, I=1, R=0, beta=0.25, gamma=0.2, delta=0.05, transmissi
 
 #' @rdname group_models
 #' @export
-seir_det <- function(S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, transmission_type=c("frequency","density"), d_time=1L, max_time=100L){
+seir_det <- function(S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, transmission_type=c("frequency","density"), d_time=1, max_time=100){
 
+  #qassert(transmission_type, "S1")
   transmission_type <- match.arg(transmission_type)
 
   model <- make_group(update_type="deterministic", numE=numE, group_name=NA_character_, model_type="SEIR", implementation="C++")
@@ -86,7 +89,9 @@ seir_det <- function(S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0
 
 #' @rdname group_models
 #' @export
-sir_stoc <- function(S=99, I=1, R=0, beta=0.25, gamma=0.2, delta=0.05, iterations=1, transmission_type="frequency", d_time=1L, max_time=100L){
+sir_stoc <- function(S=99, I=1, R=0, beta=0.25, gamma=0.2, delta=0.05, iterations=1, transmission_type="frequency", d_time=1, max_time=100){
+
+  qassert(transmission_type, "S1")
 
   pblapply(seq_len(iterations), \(i){
 
@@ -119,11 +124,12 @@ sir_stoc <- function(S=99, I=1, R=0, beta=0.25, gamma=0.2, delta=0.05, iteration
 
 #' @rdname group_models
 #' @export
-seir_stoc <- function(S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0,iterations=1, transmission_type="frequency", d_time=1L, max_time=100L){
+seir_stoc <- function(S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0,iterations=1, transmission_type="frequency", d_time=1, max_time=100){
 
+  #qassert(transmission_type, "S1")
   transmission_type <- match.arg(transmission_type)
 
-  model <- make_group(update_type="deterministic", numE=numE, group_name=NA_character_, model_type="SEIR", implementation="C++")
+  model <- make_group(update_type="stochastic", numE=numE, group_name=NA_character_, model_type="SEIR", implementation="C++")
   model$transmission_type <- transmission_type
   model$S <- S
   model$E <- E
