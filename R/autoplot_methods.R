@@ -96,6 +96,9 @@ autoplot.ipdmr_st <- function(object, ...){
 #' @export
 autoplot.ipdmr_dm <- function(object, ...){
 
+  object$GroupName <- NULL
+  object$GroupIndex <- NULL
+
   if(attr(object,'ngroups') <= 5L){
 
     object |>
@@ -135,6 +138,9 @@ autoplot.ipdmr_dm <- function(object, ...){
 
 #' @export
 autoplot.ipdmr_sm <- function(object, ...){
+
+  object$GroupName <- NULL
+  object$GroupIndex <- NULL
 
   if(attr(object,'iterations') == 1L){
 

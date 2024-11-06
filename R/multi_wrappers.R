@@ -26,12 +26,18 @@
 #' @param d_time the desired time step (delta time)
 #' @param max_time the desired maximum time point (must be greater than the time step)
 #'
+#' @examples
+#' output <- multi_seir_det(2, matrix(0,nrow=2,ncol=2))
+#' ggplot2::autoplot(output)
+#'
+#' output <- multi_seir_stoc(2, matrix(0,nrow=2,ncol=2), iterations=3L)
+#' ggplot2::autoplot(output)
 NULL
 
 
 #' @rdname multi_models
 #' @export
-multi_seir_det <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, d_time=1, max_time=100L){
+multi_seir_det <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, d_time=1, max_time=100){
 
   output <- multi_wrapper("deterministic", n_groups=n_groups, beta_matrix=beta_matrix, S=S, E=E, I=I, R=R, numE=numE, beta=beta, omega=omega, gamma=gamma, delta=delta, vacc=vacc, repl=repl, cull=cull, iterations=1, d_time=d_time, max_time=max_time)
 
@@ -43,7 +49,7 @@ multi_seir_det <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, 
 
 #' @rdname multi_models
 #' @export
-multi_seir_stoc <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, iterations=1, d_time=1, max_time=100L){
+multi_seir_stoc <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, d_time=1, max_time=100, iterations=1L){
 
   output <- multi_wrapper("stochastic", n_groups=n_groups, beta_matrix=beta_matrix, S=S, E=E, I=I, R=R, numE=numE, beta=beta, omega=omega, gamma=gamma, delta=delta, vacc=vacc, repl=repl, cull=cull, iterations=iterations, d_time=d_time, max_time=max_time)
 
@@ -97,7 +103,7 @@ multi_wrapper <- function(update_type, n_groups, beta_matrix, S=99, E=0, I=1, R=
     models
 
   ##  Set up the model:
-  model <- BetweenGroupModel$new(models)
+  model <- BetweenGroupClass$new(models)
   model$beta_matrix <- beta_matrix
   model$save()
 

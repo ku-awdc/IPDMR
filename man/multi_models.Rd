@@ -22,7 +22,7 @@ multi_seir_det(
   repl = 0,
   cull = 0,
   d_time = 1,
-  max_time = 100L
+  max_time = 100
 )
 
 multi_seir_stoc(
@@ -40,9 +40,9 @@ multi_seir_stoc(
   vacc = 0,
   repl = 0,
   cull = 0,
-  iterations = 1,
   d_time = 1,
-  max_time = 100L
+  max_time = 100,
+  iterations = 1L
 )
 }
 \arguments{
@@ -86,4 +86,11 @@ indicated time steps, and then return a data frame representing the model
 output. Note that starting values for S/E/I/R can be continuous or discrete
 for the deterministic models, but must be discrete numbers for the stochastic
 models.
+}
+\examples{
+output <- multi_seir_det(2, matrix(0,nrow=2,ncol=2))
+ggplot2::autoplot(output)
+
+output <- multi_seir_stoc(2, matrix(0,nrow=2,ncol=2), iterations=3L)
+ggplot2::autoplot(output)
 }

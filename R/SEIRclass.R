@@ -45,8 +45,6 @@ SEIRclass <- R6::R6Class("SEIRclass",
 
       ## Run save method:
       self$save()
-      ## Run reset method to test that it works:
-      self$reset()
     },
 
     #' @description
@@ -70,6 +68,10 @@ SEIRclass <- R6::R6Class("SEIRclass",
       ## Copy names:
       names(private$.saved_private) <- flds
 
+      ## Run reset immediately to (a) test it works, and (b) always reset time
+      ## to zero when both saving and resetting:
+      self$reset()
+
       invisible(self)
     },
 
@@ -88,6 +90,8 @@ SEIRclass <- R6::R6Class("SEIRclass",
 
       ## Re-run reset_N separately:
       private$reset_N()
+      ## And ensure that the internal time is reset to 0:
+      private$.time <- 0
 
       invisible(self)
     },

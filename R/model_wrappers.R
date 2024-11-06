@@ -89,7 +89,7 @@ seir_det <- function(S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0
 
 #' @rdname group_models
 #' @export
-sir_stoc <- function(S=99, I=1, R=0, beta=0.25, gamma=0.2, delta=0.05, iterations=1, transmission_type="frequency", d_time=1, max_time=100){
+sir_stoc <- function(S=99, I=1, R=0, beta=0.25, gamma=0.2, delta=0.05, transmission_type="frequency", d_time=1, max_time=100, iterations=1L){
 
   qassert(transmission_type, "S1")
 
@@ -124,7 +124,7 @@ sir_stoc <- function(S=99, I=1, R=0, beta=0.25, gamma=0.2, delta=0.05, iteration
 
 #' @rdname group_models
 #' @export
-seir_stoc <- function(S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0,iterations=1, transmission_type="frequency", d_time=1, max_time=100){
+seir_stoc <- function(S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, transmission_type="frequency", d_time=1, max_time=100, iterations=1L){
 
   #qassert(transmission_type, "S1")
   transmission_type <- match.arg(transmission_type)

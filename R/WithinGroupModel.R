@@ -41,7 +41,7 @@ WithinGroupModel <- R6::R6Class(
       update_type = c("deterministic","stochastic"),
       transmission_type = c("frequency","density"),
       numE = 3L,
-      d_time = 1L,
+      d_time = 1,
       group_number = 0L
     ){
       model_type <- match.arg(model_type)

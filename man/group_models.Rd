@@ -16,8 +16,8 @@ sir_det(
   gamma = 0.2,
   delta = 0.05,
   transmission_type = "frequency",
-  d_time = 1L,
-  max_time = 100L
+  d_time = 1,
+  max_time = 100
 )
 
 seir_det(
@@ -34,8 +34,8 @@ seir_det(
   repl = 0,
   cull = 0,
   transmission_type = c("frequency", "density"),
-  d_time = 1L,
-  max_time = 100L
+  d_time = 1,
+  max_time = 100
 )
 
 sir_stoc(
@@ -45,10 +45,10 @@ sir_stoc(
   beta = 0.25,
   gamma = 0.2,
   delta = 0.05,
-  iterations = 1,
   transmission_type = "frequency",
-  d_time = 1L,
-  max_time = 100L
+  d_time = 1,
+  max_time = 100,
+  iterations = 1L
 )
 
 seir_stoc(
@@ -64,10 +64,10 @@ seir_stoc(
   vacc = 0,
   repl = 0,
   cull = 0,
-  iterations = 1,
   transmission_type = "frequency",
-  d_time = 1L,
-  max_time = 100L
+  d_time = 1,
+  max_time = 100,
+  iterations = 1L
 )
 }
 \arguments{
