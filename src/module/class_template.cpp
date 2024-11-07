@@ -1,5 +1,5 @@
 class_<NAME>("NAME")
-  .constructor<const int, const Rcpp::CharacterVector>("Constructor")
+  .constructor<const int, const int, const int, const Rcpp::CharacterVector>("Constructor")
   .factory(invalidate_default_constructor)
     
 	.method("show", &NAME::show, "The show/print method")

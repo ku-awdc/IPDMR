@@ -70,6 +70,8 @@ multi_wrapper <- function(update_type, n_groups, beta_matrix, S=99, E=0, I=1, R=
   qassert(d_time,"N1(0,)")
   qassert(max_time,"N1(0,)")
 
+  stop("switch to using BetweenGroupClass and add numI/numR (also to model_wrappers) and transmission_type")
+
   model_pars <- list(
     S=S, E=E, I=I, R=R, numE=numE, beta=beta, omega=omega,
     gamma=gamma, delta=delta, vacc=vacc, repl=repl, cull=cull,
