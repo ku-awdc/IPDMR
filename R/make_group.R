@@ -8,9 +8,10 @@
 #' implementations should be identical).
 #'
 #' @param update_type either stochastic or deterministic
-#' @param numE the number of sub-compartments desired for the E state
+#' @param numE the number of sub-compartments desired for the E state (0 or more)
+#' @param numI the number of sub-compartments desired for the I state (1 or more)
+#' @param numR the number of sub-compartments desired for the R state (0 or more)
 #' @param group_name an optional name for the group
-#' @param model_type the compartmental model representation desired (currently only SEIR is supported)
 #' @param implementation either C++ or R6
 #'
 #' @importFrom methods new
@@ -26,35 +27,33 @@
 #' stopifnot(unlist(r6res) - unlist(cppres) == 0L)
 #'
 #' @export
-make_group <- function(update_type = c("deterministic","stochastic"), numE = 3L, group_name=NA_character_, model_type = c("SEIR", "SIR", "SI"), implementation = c("C++","R6")){
+make_group <- function(update_type = c("deterministic","stochastic"), numE = 3L, numI = 1L, numR = 1L, group_name=NA_character_, implementation = c("C++","R6")){
 
   update_type <- match.arg(update_type)
   implementation <- toupper(implementation)
   implementation <- match.arg(implementation)
-  model_type <- toupper(model_type)
-  model_type <- match.arg(model_type)
 
-  stopifnot(model_type=="SEIR")
+  qassert(numE, "X1[0,)")
+  qassert(numI, "X1(0,)")
+  qassert(numR, "X1[0,)")
 
   if(implementation=="R6"){
+
+    if(numE==0L) stop("The R6 implementation is limited to numE>=1")
+    if(numI!=1L) stop("The R6 implementation is limited to numI==1")
+    if(numR!=1L) stop("The R6 implementation is limited to numR==1")
 
     model <- SEIRclass$new(update_type=update_type, numE=numE, group_name=group_name)
 
   }else if(implementation=="C++"){
 
-    if(update_type=="deterministic"){
-      if(numE==3L){
-        model <- new(SEIRdet3, 3L, group_name)
-      }else{
-        model <- new(SEIRdetN, numE, group_name)
-      }
-    }else{
-      if(numE==3L){
-        model <- new(SEIRstoc3, 3L, group_name)
-      }else{
-        model <- new(SEIRstocN, numE, group_name)
-      }
-    }
+    modname <- str_c("SEIR",
+      if(update_type=="deterministic") "det" else "stoc",
+      if(numE %in% c(0,1,3)) numE else "N",
+      if(numI %in% c(1)) numI else "N",
+      if(numR %in% c(0,1)) numR else "N"
+    )
+    model <- new(get(modname), numE, numI, numR, group_name)
 
   }else{
     stop("Unmatched implementation type")

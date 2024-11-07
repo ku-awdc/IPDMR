@@ -31,11 +31,47 @@ NULL
 
 #' @rdname group_models
 #' @export
-sir_det <- function(S=99, I=1, R=0, beta=0.25, gamma=0.2, delta=0.05, transmission_type="frequency", d_time=1, max_time=100){
+sir_det <- function(S=99, I=1, R=0, beta=0.25, gamma=0.2, delta=0.05, transmission_type=c("frequency","density"), d_time=1, max_time=100){
 
-  qassert(transmission_type, "S1")
+  transmission_type <- match.arg(transmission_type)
 
-  model <- WithinGroupModel$new(model_type="sir", update_type="deterministic", transmission_type=transmission_type, d_time=d_time)
+  model <- make_group(update_type="deterministic", numE=0, numI=1, numR=1)
+  #model <- WithinGroupModel$new(model_type="sir", update_type="deterministic", transmission_type=transmission_type, d_time=d_time)
+
+  model$transmission_type <- transmission_type
+  model$S <- S
+  model$I <- I
+  model$R <- R
+  model$beta <- beta
+  model$gamma <- gamma
+  model$delta <- delta
+  out <- model$run(max_time, d_time)
+  rm(model)
+
+  class(out) <- c("ipdmr_dt", class(out))
+  attr(out, "plot_caption") <- str_c("deterministic; discrete; ", transmission_type)
+  return(out)
+
+  ### OLDER CODE
+
+
+  update_type <- "deterministic"
+  if(update_type=="deterministic"){
+
+
+  }else{
+
+    out |>
+      mutate(Iteration = 1L) |>
+      select(Iteration, everything()) ->
+      out
+
+    class(out) <- c("ipdmr_st", class(out))
+    attr(out,'iterations') <- 1L
+    attr(out, "plot_caption") <- str_c("stochastic; discrete; ", transmission_type)
+
+  }
+
 
   model$S <- S
   model$I <- I
@@ -54,15 +90,10 @@ sir_det <- function(S=99, I=1, R=0, beta=0.25, gamma=0.2, delta=0.05, transmissi
 #' @export
 seir_det <- function(S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, transmission_type=c("frequency","density"), d_time=1, max_time=100){
 
-  #qassert(transmission_type, "S1")
   transmission_type <- match.arg(transmission_type)
 
-  model <- make_group(update_type="deterministic", numE=numE, group_name=NA_character_, model_type="SEIR", implementation="C++")
+  model <- make_group(update_type="deterministic", numE=numE, numI=1, numR=1)
   model$transmission_type <- transmission_type
-
-  if(FALSE){
-    model <- WithinGroupModel$new(model_type="seir", update_type="deterministic", transmission_type=transmission_type, numE=numE, d_time=d_time)
-  }
 
   model$S <- S
   model$E <- E
@@ -77,7 +108,7 @@ seir_det <- function(S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0
   model$repl <- repl
   model$cull <- cull
 
-  model$run(ceiling(max_time/d_time), d_time) ->
+  model$run(max_time, d_time) ->
     output
 
   class(output) <- c("ipdmr_dt", class(output))
@@ -89,23 +120,27 @@ seir_det <- function(S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0
 
 #' @rdname group_models
 #' @export
-sir_stoc <- function(S=99, I=1, R=0, beta=0.25, gamma=0.2, delta=0.05, transmission_type="frequency", d_time=1, max_time=100, iterations=1L){
+sir_stoc <- function(S=99, I=1, R=0, beta=0.25, gamma=0.2, delta=0.05, transmission_type=c("frequency","density"), d_time=1, max_time=100, iterations=1L){
 
-  qassert(transmission_type, "S1")
+  transmission_type <- match.arg(transmission_type)
+  qassert(iterations, "X1")
+
+  model <- make_group(update_type="stochastic", numE=0, numI=1, numR=1)
+
+  model$transmission_type <- transmission_type
+  model$S <- S
+  model$I <- I
+  model$R <- R
+  model$beta <- beta
+  model$gamma <- gamma
+  model$delta <- delta
+  model$save()
 
   pblapply(seq_len(iterations), \(i){
 
-    model <- WithinGroupModel$new(model_type="sir", update_type="stochastic", transmission_type=transmission_type, d_time=d_time)
+    model$reset()
 
-    model$S <- S
-    model$I <- I
-    model$R <- R
-
-    model$beta <- beta
-    model$gamma <- gamma
-    model$delta <- delta
-
-    model$run(ceiling(max_time/d_time), d_time) |>
+    model$run(max_time, d_time) |>
       as_tibble() |>
       mutate(Iteration = i) |>
       select("Iteration", everything())
@@ -124,12 +159,12 @@ sir_stoc <- function(S=99, I=1, R=0, beta=0.25, gamma=0.2, delta=0.05, transmiss
 
 #' @rdname group_models
 #' @export
-seir_stoc <- function(S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, transmission_type="frequency", d_time=1, max_time=100, iterations=1L){
+seir_stoc <- function(S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, transmission_type=c("frequency","density"), d_time=1, max_time=100, iterations=1L){
 
   #qassert(transmission_type, "S1")
   transmission_type <- match.arg(transmission_type)
 
-  model <- make_group(update_type="stochastic", numE=numE, group_name=NA_character_, model_type="SEIR", implementation="C++")
+  model <- make_group(update_type="stochastic", numE=numE, numI=1, numR=1)
   model$transmission_type <- transmission_type
   model$S <- S
   model$E <- E
@@ -149,7 +184,7 @@ seir_stoc <- function(S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=
     #model <- WithinGroupModel$new(model_type="seir", update_type="stochastic", transmission_type=transmission_type, num_E=num_E, d_time=d_time)
 
     model$reset()
-    model$run(ceiling(max_time/d_time), d_time) |>
+    model$run(max_time, d_time) |>
       as_tibble() |>
       mutate(Iteration = i) |>
       select("Iteration", everything())

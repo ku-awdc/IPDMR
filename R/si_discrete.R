@@ -28,6 +28,23 @@ si_discrete <- function(S=9, I=1, beta=0.05, transmission_type=c("frequency","de
   ntime <- ceiling(max_time/d_time)+1L
   type <- match.arg(transmission_type)
 
+  model <- make_group("deterministic", numE=0L, numI=1L, numR=0L)
+  model$transmission_type <- transmission_type
+  model$S <- S
+  model$I <- I
+  model$beta <- beta
+  model$gamma <- 0
+  model$repl <- 0
+  model$cull <- 0
+  output <- model$run(max_time, d_time)
+  rm(model)
+
+  class(output) <- c("ipdmr_dt", class(output))
+  attr(output, "plot_caption") <- str_c("discrete; ", type, "; d_time=", round(d_time,3))
+  return(output)
+
+  ### OLDER CODE BELOW HERE
+
   i_dens <- function(i) 1 - exp(-beta * i)
   i_freq <- function(i) 1 - exp(-beta * i/N)
   i_fun <- if(type=="density") i_dens else i_freq

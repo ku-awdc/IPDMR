@@ -6,6 +6,7 @@
 // virtual methods that will be needed for between-farm spread in C++:
 class BaseModel
 {
+  // TODO: static int for ID and vector of pointers for later retrievel against ID
 public:
   virtual bool is_cpp() const = 0;
   virtual int get_id() const = 0;
@@ -14,6 +15,7 @@ public:
   virtual void set_trans_external(const double trans_external) = 0;
   virtual void update(double d_time) = 0;
   virtual Rcpp::DataFrame get_state() const = 0;
+  // TODO: N and I, but these will be templated
   virtual ~BaseModel() = default;
 };
 
@@ -29,6 +31,7 @@ enum class trans_type
   density
 };
 
+// TODO: clean this up, and specialise for C is array<T, 1> (i.e. redistribute is a no-op)
 template<typename T, typename C>
 class subcomp;
 
@@ -106,13 +109,13 @@ public:
 };
 
 
-template<typename T, typename C>
+template<typename T, typename cE, typename cI, typename cR>
 struct state
 {
   T S = static_cast<T>(99);
-  subcomp<T,C> Es; // Initialised externally
-  T I = static_cast<T>(1);
-  T R = static_cast<T>(0);
+  subcomp<T,cE> Es; // Initialised externally
+  subcomp<T,cI> Is; // Initialised externally
+  subcomp<T,cR> Rs; // Initialised externally
   T N = static_cast<T>(0);
   double timepoint = 0.0;
 };
@@ -136,8 +139,9 @@ void assertr(bool cond, std::string_view msg);
 template <>
 void assertr<false>(bool cond, std::string_view msg) { }
 
+// TODO: decompose the specialisation so there are fewer combinations???
 // templated class for specialisation (stochastic/deterministic, sir/seir/numE=0vs3vsX??, debug)
-template<update_type t_update_type, bool t_fixedE, int t_numE, bool t_debug>
+template<update_type t_update_type, int t_numE, int t_numI, int t_numR, bool t_debug>
 class SEIRmodel : public BaseModel
 {
 private:
@@ -145,6 +149,15 @@ private:
   using t_numE_type = const int;
   // typedef std::conditional<t_fixedE, constexpr int, const int>::type t_numE_type;
   t_numE_type m_numE;
+  t_numE_type m_numI;
+  t_numE_type m_numR;
+
+  static constexpr bool t_fixedE = t_numE>=0;
+  static constexpr bool t_hasE = t_numE!=0;
+  static constexpr bool t_fixedI = t_numI>=0;
+  static constexpr bool t_hasI = t_numI!=0;
+  static constexpr bool t_fixedR = t_numR>=0;
+  static constexpr bool t_hasR = t_numR!=0;
 
   std::string m_group_name;
   bool m_has_name;
@@ -158,31 +171,60 @@ private:
       t_update_type == update_type::deterministic, double, int
     >::type t_state_type;
   typedef typename std::conditional<
-      t_fixedE, std::array<t_state_type, t_numE>, std::vector<t_state_type>
+      t_fixedE, std::array<t_state_type, (t_numE<0 ) ? 0 : t_numE>, std::vector<t_state_type>
     >::type t_Etype;
-  state<t_state_type, t_Etype> m_state;
-  state<t_state_type, t_Etype> m_saved_state;
+  typedef typename std::conditional<
+      t_fixedI, std::array<t_state_type, (t_numI<0 ) ? 0 : t_numI>, std::vector<t_state_type>
+    >::type t_Itype;
+  typedef typename std::conditional<
+      t_fixedR, std::array<t_state_type, (t_numR<0 ) ? 0 : t_numR>, std::vector<t_state_type>
+    >::type t_Rtype;
+  state<t_state_type, t_Etype, t_Itype, t_Rtype> m_state;
+  state<t_state_type, t_Etype, t_Itype, t_Rtype> m_saved_state;
 
   int m_iteration = 0;
 
 public:
-  SEIRmodel(const int numE, const Rcpp::StringVector group_name) :
+  SEIRmodel(const int numE, const int numI, const int numR, const Rcpp::StringVector group_name) :
     m_numE(t_fixedE ? t_numE : numE),
+    m_numI(t_fixedI ? t_numI : numI),
+    m_numR(t_fixedR ? t_numR : numR),
     m_group_name(Rcpp::as< std::string > (group_name(0L))),
     m_has_name(!Rcpp::is_na(group_name)[0L])
   {
 
     if constexpr (t_debug){
       if (t_fixedE && (t_numE != numE)) Rcpp::stop("Invalid numE");
+      if (t_fixedI && (t_numI != numI)) Rcpp::stop("Invalid numI");
+      if (t_fixedR && (t_numR != numR)) Rcpp::stop("Invalid numR");
       if (group_name.size()!=1L) Rcpp::stop("Invalid group_name");
     }
 
-    // Re-size vector if needed:
-    if constexpr (!t_fixedE)
-    {
-      m_state.Es.values.resize(m_numE);
+    if constexpr (!t_hasE) {
+      m_pars.omega = 0.0;
+    } else {
+      if constexpr (!t_fixedE){
+        m_state.Es.values.resize(m_numE);
+      }
+      m_state.Es.set_total(static_cast<t_state_type>(0));
     }
-    m_state.Es.set_total(static_cast<t_state_type>(0));
+
+    // We always have at least 1 I!
+    if constexpr (!t_fixedI){
+      m_state.Is.values.resize(m_numI);
+    }
+    m_state.Is.set_total(static_cast<t_state_type>(1));
+
+    if constexpr (!t_hasR) {
+      m_pars.delta = 0.0;
+      m_pars.vacc = 0.0;
+    } else {
+      if constexpr (!t_fixedR){
+        m_state.Rs.values.resize(m_numR);
+      }
+      m_state.Rs.set_total(static_cast<t_state_type>(0));
+    }
+
     reset_N();
 
     // Run save method:
@@ -214,7 +256,9 @@ public:
   {
     m_state = m_saved_state;
     // For compatibility with R6:
-    m_state.Es.reset();
+    if constexpr (t_hasE) m_state.Es.reset();
+    m_state.Is.reset();
+    if constexpr (t_hasR) m_state.Rs.reset();
     m_pars = m_saved_pars;
   }
 
@@ -228,9 +272,9 @@ public:
   {
     double val = 0.0;
     if(m_pars.transmission_type == trans_type::frequency){
-      val = m_pars.beta * m_state.I / m_state.N;
+      val = m_pars.beta * m_state.Is.get_total() / m_state.N;
     }else if(m_pars.transmission_type == trans_type::density){
-      val = m_pars.beta * m_state.I;
+      val = m_pars.beta * m_state.Is.get_total();
     }else{
       Rcpp::stop("Unrecognised m_pars.transmission_type");
     }
@@ -253,29 +297,61 @@ public:
     std::array<double, 2> srates = { transmission_rate(), m_pars.vacc };
     std::array<t_state_type, 2> leave_S = apply_rates<2>(old_state.S, srates, d_time);
     m_state.S -= (leave_S[0] + leave_S[1]);
-    m_state.Es.values[0L] += leave_S[0];
-    m_state.R += leave_S[1];
-
-    t_state_type EtoS = static_cast<t_state_type>(0);
-    t_state_type Ecarry = static_cast<t_state_type>(0);
-    std::array<double, 2> erates = { m_pars.omega*m_numE, m_pars.repl };
-    for(int i=0; i<m_numE; ++i){
-      std::array<t_state_type, 2> leave_E = apply_rates<2>(old_state.Es.values[i], erates, d_time);
-      m_state.Es.values[i] += Ecarry - leave_E[0] - leave_E[1];
-      Ecarry = leave_E[0];
-      EtoS += leave_E[1];
+    if constexpr (t_hasE) {
+      m_state.Es.values[0] += leave_S[0];
+    }else{
+      m_state.Is.values[0] += leave_S[0];
     }
-    m_state.S += EtoS;
+    if constexpr (t_hasR) {
+      m_state.Rs.values[0] += leave_S[1];
+    }
 
-    std::array<double, 2> irates = { m_pars.gamma, m_pars.repl + m_pars.cull };
-    std::array<t_state_type, 2> leave_I = apply_rates<2>(old_state.I, irates, d_time);
-    m_state.I += Ecarry - leave_I[0] - leave_I[1];
-    m_state.S += leave_I[1];
+    if constexpr (t_hasE) {
+      t_state_type carry = static_cast<t_state_type>(0);
+      t_state_type toS = static_cast<t_state_type>(0);
+      std::array<double, 2> rates = { m_pars.omega*m_numE, m_pars.repl };
+      for(int i=0; i<(t_numE>0 ? t_numE : m_numE); ++i){
+        std::array<t_state_type, 2> leave = apply_rates<2>(old_state.Es.values[i], rates, d_time);
+        m_state.Es.values[i] += carry - leave[0] - leave[1];
+        carry = leave[0];
+        toS += leave[1];
+      }
+      m_state.S += toS;
+      m_state.Is.values[0] += carry;
+    }
 
-    std::array<double, 1> rrates = { m_pars.delta + m_pars.repl };
-    std::array<t_state_type, 1> leave_R = apply_rates<1>(old_state.R, rrates, d_time);
-    m_state.R += leave_I[0] - leave_R[0];
-    m_state.S += leave_R[0];
+    // We always have I!
+    {
+      t_state_type carry = static_cast<t_state_type>(0);
+      t_state_type toS = static_cast<t_state_type>(0);
+      std::array<double, 2> rates = { m_pars.gamma*m_numI, m_pars.repl + m_pars.cull };
+      for(int i=0; i<(t_numI>0 ? t_numI : m_numI); ++i){
+        std::array<t_state_type, 2> leave = apply_rates<2>(old_state.Is.values[i], rates, d_time);
+        m_state.Is.values[i] += carry - leave[0] - leave[1];
+        carry = leave[0];
+        toS += leave[1];
+      }
+      m_state.S += toS;
+      if constexpr (t_hasR) {
+        m_state.Rs.values[0] += carry;
+      } else {
+        m_state.S += carry;
+      }
+    }
+
+    if constexpr (t_hasR) {
+      t_state_type carry = static_cast<t_state_type>(0);
+      t_state_type toS = static_cast<t_state_type>(0);
+      std::array<double, 2> rates = { m_pars.delta*m_numR, m_pars.repl };
+      for(int i=0; i<(t_numR>0 ? t_numR : m_numR); ++i){
+        std::array<t_state_type, 2> leave = apply_rates<2>(old_state.Rs.values[i], rates, d_time);
+        m_state.Rs.values[i] += carry - leave[0] - leave[1];
+        carry = leave[0];
+        toS += leave[1];
+      }
+      m_state.S += toS;
+      m_state.S += carry;
+    }
 
     m_state.timepoint += d_time;
     check_state();
@@ -287,8 +363,8 @@ public:
       Rcpp::Named("Time") = m_state.timepoint,
       Rcpp::Named("S") = m_state.S,
       Rcpp::Named("E") = m_state.Es.get_total(),
-      Rcpp::Named("I") = m_state.I,
-      Rcpp::Named("R") = m_state.R
+      Rcpp::Named("I") = m_state.Is.get_total(),
+      Rcpp::Named("R") = m_state.Rs.get_total()
     );
 
     if(m_has_name)
@@ -296,8 +372,14 @@ public:
       Rcpp::String group_name = m_group_name;
       rv.push_front(group_name, "Group");
     }
+    if constexpr (!t_hasR) {
+      rv.erase(4);
+    }
+    if constexpr (!t_hasE) {
+      rv.erase(2);
+    }
 
-    return rv;
+    return Rcpp::as<Rcpp::DataFrame>(rv);
   }
 
   // New methods:
@@ -340,7 +422,7 @@ public:
 
   void reset_N()
   {
-    m_state.N = m_state.S+m_state.Es.get_total()+m_state.I+m_state.R;
+    m_state.N = m_state.S+m_state.Es.get_total()+m_state.Is.get_total()+m_state.Rs.get_total();
     check_state();
   }
 
@@ -356,6 +438,7 @@ public:
 
   void set_E(t_state_type val)
   {
+    if constexpr (!t_hasE) Rcpp::stop("Model contains no E compartments!");
     m_state.Es.set_total(val);
     reset_N();
   }
@@ -366,22 +449,23 @@ public:
 
   void set_I(t_state_type val)
   {
-    m_state.I = val;
+    m_state.Is.set_total(val);
     reset_N();
   }
   t_state_type get_I() const
   {
-    return m_state.I;
+    return m_state.Is.get_total();
   }
 
   void set_R(t_state_type val)
   {
-    m_state.R = val;
+    if constexpr (!t_hasR) Rcpp::stop("Model contains no R compartments!");
+    m_state.Rs.set_total(val);
     reset_N();
   }
   t_state_type get_R() const
   {
-    return m_state.R;
+    return m_state.Rs.get_total();;
   }
 
   t_state_type get_N() const
@@ -400,6 +484,7 @@ public:
 
   void set_omega(double val)
   {
+    if constexpr(!t_hasE) Rcpp::stop("Unable to change omega:  no E state!");
     m_pars.omega = val;
   }
   double get_omega() const
@@ -418,6 +503,7 @@ public:
 
   void set_delta(double val)
   {
+    if constexpr(!t_hasR) Rcpp::stop("Unable to change delta:  no R state!");
     m_pars.delta = val;
   }
   double get_delta() const
@@ -445,6 +531,7 @@ public:
 
   void set_vacc(double val)
   {
+    if constexpr(!t_hasR) Rcpp::stop("Unable to change vacc:  no R state!");
     m_pars.vacc = val;
   }
   double get_vacc() const
@@ -493,7 +580,7 @@ public:
   {
     if constexpr (t_debug)
     {
-      t_state_type newN = m_state.S+m_state.Es.get_total()+m_state.I+m_state.R;
+      t_state_type newN = m_state.S+m_state.Es.get_total()+m_state.Is.get_total()+m_state.Rs.get_total();
       if constexpr (t_update_type==update_type::deterministic){
         if(std::abs(newN - m_state.N) > 1e-6) Rcpp::stop("Error in update: N has changed!");
       }else{
@@ -509,10 +596,12 @@ public:
     Rcpp::Rcout << "An SEIR model with ";
     if (m_has_name) Rcpp::Rcout << "identifier/name '" << m_group_name << "' and ";
     Rcpp::Rcout << "the following properties:\n\t";
-    Rcpp::Rcout << "S/E/I/R (N) = " << m_state.S << "/" << m_state.Es.get_total() << "/" << m_state.I << "/" << m_state.R << " (" << m_state.N << ")\n\t";
+    Rcpp::Rcout << "S/E/I/R (N) = " << m_state.S << "/" << m_state.Es.get_total() << "/" << m_state.Is.get_total() << "/" << m_state.Rs.get_total() << " (" << m_state.N << ")\n\t";
     Rcpp::Rcout << "beta/omega/gamma/delta = " << m_pars.beta << "/" << m_pars.omega << "/" << m_pars.gamma << "/" << m_pars.delta << "\n\t";
     Rcpp::Rcout << "vacc/repl/cull = " << m_pars.vacc << "/" << m_pars.repl << "/" << m_pars.cull << "\n\t";
     Rcpp::Rcout << "E compartments = " << m_numE << "\n\t";
+    Rcpp::Rcout << "I compartments = " << m_numI << "\n\t";
+    Rcpp::Rcout << "R compartments = " << m_numR << "\n\t";
     Rcpp::Rcout << "external transmission = " << m_pars.trans_external << "\n\t";
     if constexpr (t_update_type==update_type::deterministic){
       Rcpp::Rcout << "update type = " << "deterministic" << "\n\t";
@@ -583,8 +672,14 @@ public:
       Rcpp::String group_name = m_group_name;
       rv.push_front(group_name, "Group");
     }
+    if constexpr (!t_hasR) {
+      rv.erase(4);
+    }
+    if constexpr (!t_hasE) {
+      rv.erase(2);
+    }
 
-    return rv;
+    return Rcpp::as<Rcpp::DataFrame>(rv);
   }
 
 };
