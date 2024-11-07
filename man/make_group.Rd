@@ -7,19 +7,22 @@
 make_group(
   update_type = c("deterministic", "stochastic"),
   numE = 3L,
+  numI = 1L,
+  numR = 1L,
   group_name = NA_character_,
-  model_type = c("SEIR", "SIR", "SI"),
   implementation = c("C++", "R6")
 )
 }
 \arguments{
 \item{update_type}{either stochastic or deterministic}
 
-\item{numE}{the number of sub-compartments desired for the E state}
+\item{numE}{the number of sub-compartments desired for the E state (0 or more)}
+
+\item{numI}{the number of sub-compartments desired for the I state (1 or more)}
+
+\item{numR}{the number of sub-compartments desired for the R state (0 or more)}
 
 \item{group_name}{an optional name for the group}
-
-\item{model_type}{the compartmental model representation desired (currently only SEIR is supported)}
 
 \item{implementation}{either C++ or R6}
 }

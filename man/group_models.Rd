@@ -15,7 +15,7 @@ sir_det(
   beta = 0.25,
   gamma = 0.2,
   delta = 0.05,
-  transmission_type = "frequency",
+  transmission_type = c("frequency", "density"),
   d_time = 1,
   max_time = 100
 )
@@ -45,7 +45,7 @@ sir_stoc(
   beta = 0.25,
   gamma = 0.2,
   delta = 0.05,
-  transmission_type = "frequency",
+  transmission_type = c("frequency", "density"),
   d_time = 1,
   max_time = 100,
   iterations = 1L
@@ -64,7 +64,7 @@ seir_stoc(
   vacc = 0,
   repl = 0,
   cull = 0,
-  transmission_type = "frequency",
+  transmission_type = c("frequency", "density"),
   d_time = 1,
   max_time = 100,
   iterations = 1L

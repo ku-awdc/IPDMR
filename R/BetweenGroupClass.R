@@ -117,7 +117,14 @@ BetweenGroupClass <- R6::R6Class(
 
       ## TODO: C++ function if private$.allcpp
 
-      trans_b <- colSums(private$.beta_matrix * sapply(private$.groups, \(x) x$I))
+      if(private$.trans_between == "frequency"){
+        multby <- sapply(private$.groups, \(x){ x$I / x$N })
+      }else if(private$.trans_between == "density"){
+        multby <- sapply(private$.groups, \(x) x$I)
+      }else{
+        stop("Unrecognised private$.trans_between")
+      }
+      trans_b <- colSums(private$.beta_matrix * multby)
       for(i in seq_along(private$.groups)){
         private$.groups[[i]]$trans_external <- trans_b[i]
         private$.groups[[i]]$update(d_time)
@@ -206,6 +213,7 @@ BetweenGroupClass <- R6::R6Class(
     .ngroups = numeric(),
     .groups = list(),
     .time = numeric(),
+    .trans_between = "density",
 
     .dummy=NULL
   ),
@@ -227,6 +235,13 @@ BetweenGroupClass <- R6::R6Class(
     #' @field time the current time point
     time = function(){
       private$.time
+    },
+
+    #' @field transmission_between the between-group transmission type (frequency or density)
+    transmission_between = function(value){
+      if(missing(value)) return(private$.trans_between)
+      value <- match.arg(value, c("frequency","density"))
+      private$.trans_between <- value
     },
 
     #' @field state a data frame of the current state of each group

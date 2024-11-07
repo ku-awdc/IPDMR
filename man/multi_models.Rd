@@ -21,6 +21,8 @@ multi_seir_det(
   vacc = 0,
   repl = 0,
   cull = 0,
+  transmission_within = c("frequency", "density"),
+  transmission_between = c("density", "frequency"),
   d_time = 1,
   max_time = 100
 )
@@ -40,6 +42,8 @@ multi_seir_stoc(
   vacc = 0,
   repl = 0,
   cull = 0,
+  transmission_within = c("frequency", "density"),
+  transmission_between = c("density", "frequency"),
   d_time = 1,
   max_time = 100,
   iterations = 1L
@@ -73,6 +77,10 @@ multi_seir_stoc(
 \item{repl}{the replacement rate parameter per unit time (must be positive)}
 
 \item{cull}{the targeted culling rate parameter per unit time (must be positive)}
+
+\item{transmission_within}{the within-group transmission type (frequency or density)}
+
+\item{transmission_between}{the between-group transmission type (frequency or density)}
 
 \item{d_time}{the desired time step (delta time)}
 

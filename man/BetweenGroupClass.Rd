@@ -69,6 +69,8 @@ summary(all_output)
 
 \item{\code{time}}{the current time point}
 
+\item{\code{transmission_between}}{the between-group transmission type (frequency or density)}
+
 \item{\code{state}}{a data frame of the current state of each group}
 }
 \if{html}{\out{</div>}}

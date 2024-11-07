@@ -4,10 +4,12 @@
 \alias{suggest_boxes}
 \title{Suggest a number of sub-compartments to obtain a suitable distribution of transition times}
 \usage{
-suggest_boxes(mean, sd, d_time)
+suggest_boxes(mean, sd)
 }
 \arguments{
-\item{d_time}{}
+\item{mean}{the desired mean waiting time}
+
+\item{sd}{the desired standard deviation in waiting time}
 }
 \value{
 the function returns a ggplot object illustrating the suggestions,
@@ -17,12 +19,9 @@ and prints the suggested number of sub-compartments and rates to screen
 This is a utility function that takes a desired mean and standard deviation for
 the distribution of transit times through a disease compartment, and suggests
 a suitable rate and number of sub-compartments that matches the provided mean
-and variance as closely as possible.  If a d_time argument is provided, then
-the illustrative plot of the Erlang (gamma) distribution will be overlaid
-with a negative binomial.
+and variance as closely as possible.
 }
 \examples{
-suggest_boxes(mean=5, sd=1)
-suggest_boxes(mean=5, sd=3, d_time=0.1)
+suggest_boxes(mean=5, sd=1.4)
 
 }

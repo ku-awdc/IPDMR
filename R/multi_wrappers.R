@@ -22,6 +22,8 @@
 #' @param vacc the vaccination rate parameter per unit time (must be positive)
 #' @param repl the replacement rate parameter per unit time (must be positive)
 #' @param cull the targeted culling rate parameter per unit time (must be positive)
+#' @param transmission_within the within-group transmission type (frequency or density)
+#' @param transmission_between the between-group transmission type (frequency or density)
 #' @param iterations the number of iterations to run (stochastic models only)
 #' @param d_time the desired time step (delta time)
 #' @param max_time the desired maximum time point (must be greater than the time step)
@@ -37,9 +39,11 @@ NULL
 
 #' @rdname multi_models
 #' @export
-multi_seir_det <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, d_time=1, max_time=100){
+multi_seir_det <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, transmission_within=c("frequency","density"), transmission_between=c("density","frequency"), d_time=1, max_time=100){
 
-  output <- multi_wrapper("deterministic", n_groups=n_groups, beta_matrix=beta_matrix, S=S, E=E, I=I, R=R, numE=numE, beta=beta, omega=omega, gamma=gamma, delta=delta, vacc=vacc, repl=repl, cull=cull, d_time=d_time, max_time=max_time, iterations=1L)
+  transmission_within <- match.arg(transmission_within)
+  transmission_between <- match.arg(transmission_between)
+  output <- multi_wrapper("deterministic", n_groups=n_groups, beta_matrix=beta_matrix, S=S, E=E, I=I, R=R, numE=numE, beta=beta, omega=omega, gamma=gamma, delta=delta, vacc=vacc, repl=repl, cull=cull, transmission_within=transmission_within, transmission_between=transmission_between, d_time=d_time, max_time=max_time, iterations=1L)
 
   class(output) <- c("ipdmr_dm", class(output))
   attr(output, "plot_caption") <- str_c("deterministic; ", n_groups, " groups")
@@ -49,9 +53,11 @@ multi_seir_det <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, 
 
 #' @rdname multi_models
 #' @export
-multi_seir_stoc <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, d_time=1, max_time=100, iterations=1L){
+multi_seir_stoc <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, transmission_within=c("frequency","density"), transmission_between=c("density","frequency"), d_time=1, max_time=100, iterations=1L){
 
-  output <- multi_wrapper("stochastic", n_groups=n_groups, beta_matrix=beta_matrix, S=S, E=E, I=I, R=R, numE=numE, beta=beta, omega=omega, gamma=gamma, delta=delta, vacc=vacc, repl=repl, cull=cull, d_time=d_time, max_time=max_time, iterations=iterations)
+  transmission_within <- match.arg(transmission_within)
+  transmission_between <- match.arg(transmission_between)
+  output <- multi_wrapper("stochastic", n_groups=n_groups, beta_matrix=beta_matrix, S=S, E=E, I=I, R=R, numE=numE, beta=beta, omega=omega, gamma=gamma, delta=delta, vacc=vacc, repl=repl, cull=cull, transmission_within=transmission_within, transmission_between=transmission_between, d_time=d_time, max_time=max_time, iterations=iterations)
 
   class(output) <- c("ipdmr_sm", class(output))
   attr(output, "iterations") <- iterations
@@ -61,20 +67,21 @@ multi_seir_stoc <- function(n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L,
 }
 
 
-multi_wrapper <- function(update_type, n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, d_time=1, max_time=100L, iterations=1L){
+multi_wrapper <- function(update_type, n_groups, beta_matrix, S=99, E=0, I=1, R=0, numE=3L, beta=0.25, omega=0.2, gamma=0.2, delta=0.05, vacc=0, repl=0, cull=0, transmission_within=c("frequency","density"), transmission_between=c("density","frequency"), d_time=1, max_time=100L, iterations=1L){
 
   ## Check arguments:
+  transmission_within <- match.arg(transmission_within)
+  transmission_between <- match.arg(transmission_between)
   qassert(n_groups, "X1(0,)")
   assert_matrix(beta_matrix, "numeric", any.missing=FALSE, nrows=n_groups, ncols=n_groups)
   qassert(iterations, "X1(0,)")
   qassert(d_time,"N1(0,)")
   qassert(max_time,"N1(0,)")
 
-  stop("switch to using BetweenGroupClass and add numI/numR (also to model_wrappers) and transmission_type")
-
   model_pars <- list(
     S=S, E=E, I=I, R=R, numE=numE, beta=beta, omega=omega,
     gamma=gamma, delta=delta, vacc=vacc, repl=repl, cull=cull,
+    transmission_type=transmission_within,
     group_number=seq_len(n_groups)
   )
 
@@ -91,9 +98,7 @@ multi_wrapper <- function(update_type, n_groups, beta_matrix, S=99, E=0, I=1, R=
     group_split() |>
     set_names(str_c("Group_", seq_len(n_groups) |> format() |> str_replace_all(" ", "0"))) |>
     lapply(\(x){
-      #md <- WithinGroupModel$new("seir", update_type, "frequency", numE=x$numE, d_time=d_time, group_number=x[["group_number"]])
-      md <- make_group(update_type=update_type, numE=x$numE, group_name=x[["group_number"]], model_type="SEIR", implementation="C++")
-      md$transmission_type <- "frequency"
+      md <- make_group(update_type=update_type, numE=x$numE, numI=1, numR=1, group_name=x[["group_number"]])
       x$numE <- NULL
       x$group_number <- NULL
       for(nm in names(x)){
@@ -107,6 +112,7 @@ multi_wrapper <- function(update_type, n_groups, beta_matrix, S=99, E=0, I=1, R=
   ##  Set up the model:
   model <- BetweenGroupClass$new(models)
   model$beta_matrix <- beta_matrix
+  model$transmission_between <- transmission_between
   model$save()
 
   ## Iterate:

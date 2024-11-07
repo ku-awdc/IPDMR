@@ -6,6 +6,7 @@
 // virtual methods that will be needed for between-farm spread in C++:
 class BaseModel
 {
+  // TODO: static int for ID and vector of pointers for later retrievel against ID
 public:
   virtual bool is_cpp() const = 0;
   virtual int get_id() const = 0;
@@ -14,6 +15,7 @@ public:
   virtual void set_trans_external(const double trans_external) = 0;
   virtual void update(double d_time) = 0;
   virtual Rcpp::DataFrame get_state() const = 0;
+  // TODO: N and I, but these will be templated
   virtual ~BaseModel() = default;
 };
 
@@ -124,9 +126,9 @@ struct parameters
   double omega = 0.05;
   double gamma = 0.025;
   double delta = 0.005;
-  double vacc = 0.0;//0.001;
-  double repl = 0.0;//0.0001;
-  double cull = 0.0;//0.002;
+  double vacc = 0.001;
+  double repl = 0.0001;
+  double cull = 0.002;
   double trans_external = 0.0;
   trans_type transmission_type = trans_type::frequency;
 };
