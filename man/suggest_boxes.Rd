@@ -22,6 +22,11 @@ a suitable rate and number of sub-compartments that matches the provided mean
 and variance as closely as possible.
 }
 \examples{
-suggest_boxes(mean=5, sd=1.4)
+# An average of 5 days, with sd of 2.5 days:
+suggest_boxes(mean=5, sd=3)
+
+# The number of sub-compartments is invariant to transformation of the rate
+# on different time scales, i.e. we get the same if specifying in hours:
+suggest_boxes(mean=5*24, sd=3*24)
 
 }

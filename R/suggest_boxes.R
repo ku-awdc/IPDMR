@@ -13,7 +13,12 @@
 #' and prints the suggested number of sub-compartments and rates to screen
 #'
 #' @examples
-#' suggest_boxes(mean=5, sd=1.4)
+#' # An average of 5 days, with sd of 2.5 days:
+#' suggest_boxes(mean=5, sd=3)
+#'
+#' # The number of sub-compartments is invariant to transformation of the rate
+#' # on different time scales, i.e. we get the same if specifying in hours:
+#' suggest_boxes(mean=5*24, sd=3*24)
 #'
 #' @importFrom stats dgamma qgamma
 #'
@@ -23,14 +28,15 @@ suggest_boxes <- function(mean, sd){
   qassert(mean, "N1(0,)")
   qassert(sd, "N1(0,)")
 
-  rate <- round(1/mean, 2)
+  rate <- signif(1/mean, 2)
 
-  variance <- sd^2
-  shape <- mean^2/variance^2
+  #variance <- sd^2
+  #shape <- mean^2/variance
+  shape <- (mean/sd)^2
 
   options <- seq(floor(shape), ceiling(shape), by=1L)
   opt_shapes <- unique(options[options>0])
-  vars <- sqrt(mean^2/opt_shapes)
+  vars <- opt_shapes/(opt_shapes*rate)^2
 
   yields <- paste0(opt_shapes, " subcompartments with overall rate ", rate, ", which yields:\n\tmean = ", round(1/rate, 2), "  (desired: ", round(mean,2), ")\n\tsd = ", round(sqrt(vars), 2), "  (desired: ", round(sd,2), ")\n", sep="")
   yields
