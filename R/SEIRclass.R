@@ -221,7 +221,7 @@ SEIRclass <- R6::R6Class("SEIRclass",
       if(private$.update_type=="stochastic"){
         stopifnot(calcN == private$.N)
       }else if(private$.update_type=="deterministic"){
-        stopifnot(all.equal(calcN, private$.N))
+        stopifnot(isTRUE(all.equal(calcN, private$.N)))
       }else{
         stop("Internal logic error")
       }
