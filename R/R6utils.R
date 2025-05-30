@@ -1,5 +1,6 @@
 `$` <- function(lhs,rhs){
   name <- deparse(substitute(rhs))
+  if(inherits(lhs, "refGeneratorSlot")) stop("This version of $ doesn't work for class$new(...) - try new(class, ...) instead!")
   if(is.environment(lhs) &&
       !".pointer" %in% names(lhs) &&
       !name %in% c(names(lhs),"active","private","super","deep_clone") &&
